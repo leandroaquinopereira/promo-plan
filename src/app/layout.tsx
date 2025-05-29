@@ -1,8 +1,14 @@
 import './globals.css'
 
 import type { Metadata } from 'next'
+import { Open_Sans } from 'next/font/google'
 
 import { Providers } from './providers'
+
+const openSans = Open_Sans({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+})
 
 export const metadata: Metadata = {
   title: {
@@ -20,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="">
+      <body className={`${openSans.className} antialiased min-h-dvh w-dvw`}>
         <Providers>{children}</Providers>
       </body>
     </html>
