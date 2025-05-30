@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@promo/components/ui/dropdown-menu'
 import { cn } from '@promo/lib/utils'
-import { Check, Dot, Moon, Sun } from 'lucide-react'
+import { Check, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import * as React from 'react'
 

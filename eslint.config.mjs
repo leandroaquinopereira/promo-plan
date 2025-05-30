@@ -24,7 +24,7 @@ const config = [
 
     rules: {
       'no-extend-native': 'off',
-      '@typescript-eslint/no-unused-vars': 'off',
+      // '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-unsafe-declaration-merging': 'off',
       'simple-import-sort/imports': 'error',
       'no-useless-constructor': 'off',
