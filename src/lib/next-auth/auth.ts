@@ -1,6 +1,6 @@
 import { FirestoreAdapter } from '@auth/firebase-adapter'
 import { env } from '@promo/env'
-import { comparePassword, hashPassword } from '@promo/utils/crypto'
+import { comparePassword } from '@promo/utils/crypto'
 import { cert } from 'firebase-admin/app'
 import NextAuth, { CredentialsSignin } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
