@@ -1,13 +1,13 @@
 import { auth } from '@promo/lib/next-auth/auth'
 import { formatPhoneNumber } from '@promo/utils/format-phone-number'
 import { formatUsername } from '@promo/utils/format-username'
-import { Bell, Cog, User } from 'lucide-react'
+import { Cog, User } from 'lucide-react'
 import Link from 'next/link'
 
 import { LogoutButton } from './logout-button'
+import { Notifications } from './notifications'
 import { ModeToggleSub } from './theme/toggle'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
-import { Button } from './ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,9 +28,7 @@ export async function Header() {
       </Link>
 
       <div className="flex items-center gap-0.5">
-        <Button className="rounded-full" variant="ghost" size="icon">
-          <Bell className="size-4" />
-        </Button>
+        <Notifications />
 
         <DropdownMenu>
           <DropdownMenuTrigger className="cursor-pointer">
