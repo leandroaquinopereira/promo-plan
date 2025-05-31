@@ -36,8 +36,8 @@ export function PasswordField({
         disabled={disabled}
         onClick={() => setShowPassword((prev) => !prev)}
       >
-        <Eye className={cn('hidden size-4', !showPassword && 'block')} />
-        <EyeClosed className={cn('hidden size-4', showPassword && 'block')} />
+        <Eye className={cn('hidden size-4', showPassword && 'block')} />
+        <EyeClosed className={cn('hidden size-4', !showPassword && 'block')} />
       </button>
     </div>
   )

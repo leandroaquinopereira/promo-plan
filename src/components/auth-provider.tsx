@@ -1,16 +1,15 @@
 import { auth } from '@promo/lib/next-auth/auth'
 import { permanentRedirect } from 'next/navigation'
 
-export default async function Home() {
+type AuthProviderProps = {
+  children: React.ReactNode[] | React.ReactNode
+}
+
+export async function AuthProvider({ children }: AuthProviderProps) {
   const responseAuth = await auth()
-  console.log(responseAuth)
   if (!responseAuth) {
     permanentRedirect('/auth/sign-in')
   }
 
-  return (
-    <main>
-      <div>Hello world!</div>
-    </main>
-  )
+  return children
 }

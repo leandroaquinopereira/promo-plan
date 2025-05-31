@@ -5,6 +5,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@promo/components/ui/dropdown-menu'
 import { cn } from '@promo/lib/utils'
@@ -58,5 +62,50 @@ export function ModeToggle({ trigger }: ModeToggleProps) {
         </DropdownMenuItem> */}
       </DropdownMenuContent>
     </DropdownMenu>
+  )
+}
+
+export function ModeToggleSub() {
+  const { setTheme, resolvedTheme } = useTheme()
+
+  return (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger className="cursor-pointer gap-2 font-medium">
+        {resolvedTheme === 'light' ? (
+          <Sun className="size-4" />
+        ) : (
+          <Moon className="size-4" />
+        )}
+        Tema
+      </DropdownMenuSubTrigger>
+      <DropdownMenuPortal>
+        <DropdownMenuSubContent sideOffset={10}>
+          <DropdownMenuItem
+            className="justify-between"
+            onClick={() => setTheme('light')}
+          >
+            Light
+            <Check
+              className={cn(
+                'text-foreground sr-only',
+                resolvedTheme === 'light' && 'not-sr-only',
+              )}
+            />
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="justify-between"
+            onClick={() => setTheme('dark')}
+          >
+            Dark
+            <Check
+              className={cn(
+                'text-foreground sr-only',
+                resolvedTheme === 'dark' && 'not-sr-only',
+              )}
+            />
+          </DropdownMenuItem>
+        </DropdownMenuSubContent>
+      </DropdownMenuPortal>
+    </DropdownMenuSub>
   )
 }

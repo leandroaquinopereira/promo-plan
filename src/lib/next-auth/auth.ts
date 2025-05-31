@@ -70,15 +70,22 @@ export const { signIn, signOut, auth, handlers } = NextAuth({
   session: {
     strategy: 'jwt',
   },
+  // cookies: {
+  //   sessionToken: {
+  //     name: '__Secure-promo-plan.token',
+  //   },
+  // },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
+        token.phoneNumber = user.phoneNumber
       }
       return token
     },
     async session({ session, token }) {
       session.user.id = token.id as string
+      session.user.phoneNumber = token.phoneNumber as string
       return session
     },
   },
