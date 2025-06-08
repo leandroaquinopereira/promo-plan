@@ -2,9 +2,9 @@ import { Muted } from '@promo/components/ui/typography'
 import { UtensilsCrossed } from 'lucide-react'
 import Link from 'next/link'
 
-import { LoginForm } from './form'
+import { ForgotPasswordForm } from './form'
 
-export default function SignInPage() {
+export default async function ForgotPassword() {
   return (
     <div className="w-full max-w-sm">
       <div className="flex flex-col gap-6 mb-6">
@@ -15,21 +15,19 @@ export default function SignInPage() {
             </div>
             <span className="sr-only">Promo Plan</span>
           </a>
-          <h1 className="text-xl font-bold">Bem-vindo ao Promo Plan.</h1>
+          <h1 className="text-xl font-bold">Recupere sua senha</h1>
           <div className="text-center text-sm">
-            <p>
-              Digite seu número de telefone para entrar. Seus dados estão
-              protegidos e seguros.
-            </p>
+            <p>Digite seu número de celular para recuperar sua senha.</p>
           </div>
+
+          <ForgotPasswordForm />
         </div>
       </div>
-      <LoginForm />
 
       <Muted className="mt-2">
-        Esqueceu sua senha?{' '}
+        Lembrou sua senha?{' '}
         <Link
-          href="/auth/forgot-password"
+          href="/auth/sign-in"
           className="underline text-blue-600 dark:text-blue-300"
         >
           clique aqui

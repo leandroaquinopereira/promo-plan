@@ -1,4 +1,5 @@
 import { FirestoreAdapter } from '@auth/firebase-adapter'
+import { Collections } from '@promo/collections'
 import { env } from '@promo/env'
 import { comparePassword } from '@promo/utils/crypto'
 import { cert } from 'firebase-admin/app'
@@ -41,7 +42,7 @@ export const { signIn, signOut, auth, handlers } = NextAuth({
 
         const { firestore } = apps
         const userRef = await firestore
-          .collection('users')
+          .collection(Collections.USERS)
           .doc(credentials.phoneNumber as string)
           .get()
 

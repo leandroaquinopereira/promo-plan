@@ -51,31 +51,16 @@ function Button({
   }) {
   const Comp = asChild ? Slot : 'button'
 
-  if (isLoading) {
-    return (
-      <Comp
-        data-slot="button"
-        disabled={disabled || isLoading}
-        className={cn(buttonVariants({ variant, size, className }))}
-        {...props}
-      >
-        <div className="relative flex items-center gap-2">
-          {isLoading && (
-            <Loader className="size-4 animate-spin absolute top-1/2 -translate-y-1/2 -left-5" />
-          )}
-          {children}
-        </div>
-      </Comp>
-    )
-  }
-
   return (
     <Comp
       data-slot="button"
       disabled={disabled || isLoading}
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn('relative', buttonVariants({ variant, size, className }))}
       {...props}
     >
+      {isLoading && (
+        <Loader className="size-4 animate-spin absolute top-1/2 -translate-y-1/2 right-2 text-white dark:text-black" />
+      )}
       {children}
     </Comp>
   )
