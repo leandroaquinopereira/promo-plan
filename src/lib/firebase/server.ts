@@ -9,7 +9,9 @@ const firebaseConfig: AppOptions = {
   credential: cert({
     projectId: env.AUTH_FIREBASE_PROJECT_ID,
     clientEmail: env.AUTH_FIREBASE_CLIENT_EMAIL,
-    privateKey: env.AUTH_FIREBASE_PRIVATE_KEY,
+    privateKey: Buffer.from(env.AUTH_FIREBASE_PRIVATE_KEY, 'base64').toString(
+      'utf-8',
+    ),
   }),
 }
 
@@ -40,7 +42,9 @@ export function initFirestore() {
     credential: cert({
       projectId: env.AUTH_FIREBASE_PROJECT_ID,
       clientEmail: env.AUTH_FIREBASE_CLIENT_EMAIL,
-      privateKey: env.AUTH_FIREBASE_PRIVATE_KEY,
+      privateKey: Buffer.from(env.AUTH_FIREBASE_PRIVATE_KEY, 'base64').toString(
+        'utf-8',
+      ),
     }),
   })
 }
