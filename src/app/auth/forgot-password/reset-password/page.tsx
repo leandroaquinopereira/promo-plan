@@ -1,6 +1,7 @@
 import { Muted } from '@promo/components/ui/typography'
 import { UtensilsCrossed } from 'lucide-react'
 import Link from 'next/link'
+import { Suspense } from 'react'
 
 import { ResetPasswordForm } from './form'
 
@@ -23,7 +24,9 @@ export default async function ResetPassword() {
             </p>
           </div>
 
-          <ResetPasswordForm />
+          <Suspense fallback={<div>Carregando...</div>}>
+            <ResetPasswordForm />
+          </Suspense>
         </div>
       </div>
 
