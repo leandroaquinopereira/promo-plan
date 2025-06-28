@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${openSans.className} antialiased min-h-dvh w-screen flex flex-col pb-2 overflow-x-hidden`}
+        className={`${openSans.className} antialiased min-h-dvh w-screen flex flex-col pb-2 overflow-hidden`}
       >
         <Providers>{children}</Providers>
       </body>

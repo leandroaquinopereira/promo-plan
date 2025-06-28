@@ -59,7 +59,7 @@ function Button({
       {...props}
     >
       {isLoading && (
-        <Loader className="size-4 animate-spin absolute top-1/2 -translate-y-1/2 right-2 text-white dark:text-black" />
+        <Loader className="size-4 animate-spin text-white dark:text-black" />
       )}
       {children}
     </Comp>

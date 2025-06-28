@@ -1,7 +1,10 @@
 'use client'
 
+import { AppProgressProvider as ProgressProvider } from '@bprogress/next'
+import { MantineProvider } from '@mantine/core'
 import { ThemeProvider } from '@promo/components/theme/provider'
 import { Toaster } from '@promo/components/ui/sonner'
+import { TooltipProvider } from '@promo/components/ui/tooltip'
 import { getQueryClient } from '@promo/lib/react-query'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
@@ -19,15 +22,21 @@ export function Providers({ children }: { children: ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
-      <NuqsAdapter>
-        <SessionProvider>
-          <QueryClientProvider client={queryClient}>
-            {children}
-            <ReactQueryDevtools />
-          </QueryClientProvider>
-        </SessionProvider>
-      </NuqsAdapter>
-      <Toaster richColors />
+      <MantineProvider>
+        <ProgressProvider shallowRouting height="4px" startOnLoad>
+          <TooltipProvider>
+            <NuqsAdapter>
+              <SessionProvider>
+                <QueryClientProvider client={queryClient}>
+                  {children}
+                  <ReactQueryDevtools />
+                </QueryClientProvider>
+              </SessionProvider>
+            </NuqsAdapter>
+            <Toaster richColors />
+          </TooltipProvider>
+        </ProgressProvider>
+      </MantineProvider>
     </ThemeProvider>
   )
 }

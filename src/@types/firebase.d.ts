@@ -16,3 +16,20 @@ export type VerificationCode = {
     metadata: string
   }
 }
+
+export type GuideCategory =
+  | 'checklist'
+  | 'reports'
+  | 'photo_evidences'
+  | 'setup'
+  | 'best_practices'
+
+export interface Guide {
+  id: string
+  title: string
+  description: string
+  category: GuideCategory
+  lastUpdated: string
+  content?: string
+  updatedAt: firestore.Timestamp
+}
