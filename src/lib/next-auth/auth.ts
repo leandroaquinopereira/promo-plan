@@ -2,11 +2,10 @@ import { FirestoreAdapter } from '@auth/firebase-adapter'
 import { Collections } from '@promo/collections'
 import { env } from '@promo/env'
 import { comparePassword } from '@promo/utils/crypto'
-import { cert } from 'firebase-admin/app'
 import NextAuth, { CredentialsSignin } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 
-import { getFirebaseApps } from '../firebase/server'
+import { getFirebaseApps, initFirestore } from '../firebase/server'
 
 class InvalidLoginError extends CredentialsSignin {
   code = 'Número de telefone ou senha inválidos'
@@ -16,16 +15,20 @@ class ServerConnectionError extends CredentialsSignin {
   code = 'Erro de conexão com o servidor'
 }
 
+const raw = Buffer.from(env.AUTH_FIREBASE_PRIVATE_KEY, 'base64').toString(
+  'utf-8',
+)
+
+// 2) Replace literal “\n” (backslash + n) with real newlines
+let firebasePrivateKey = raw.replace(/\\n/g, '\n').trim()
+if (!firebasePrivateKey.endsWith('\n')) {
+  firebasePrivateKey += '\n'
+}
+
+const firestore = initFirestore()
+
 export const { signIn, signOut, auth, handlers } = NextAuth({
-  adapter: FirestoreAdapter({
-    credential: cert({
-      projectId: env.AUTH_FIREBASE_PROJECT_ID,
-      clientEmail: env.AUTH_FIREBASE_CLIENT_EMAIL,
-      privateKey: Buffer.from(env.AUTH_FIREBASE_PRIVATE_KEY, 'base64').toString(
-        'utf-8',
-      ),
-    }),
-  }),
+  adapter: FirestoreAdapter(firestore),
   providers: [
     Credentials({
       credentials: {
