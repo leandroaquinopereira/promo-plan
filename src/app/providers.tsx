@@ -23,7 +23,14 @@ export function Providers({ children }: { children: ReactNode }) {
       disableTransitionOnChange
     >
       <MantineProvider>
-        <ProgressProvider shallowRouting height="4px" startOnLoad>
+        <ProgressProvider
+          shallowRouting
+          height="4px"
+          startOnLoad
+          options={{
+            showSpinner: false,
+          }}
+        >
           <TooltipProvider>
             <NuqsAdapter>
               <SessionProvider>

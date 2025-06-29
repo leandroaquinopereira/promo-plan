@@ -67,7 +67,7 @@ export const createNewGuide = createServerAction()
       updatedBy: session.user.id,
       active: true,
       documents: [],
-      searchQuery: Array.from(substrings),
+      searchQuery: Array.from(new Set(substrings)),
     })
 
     return {

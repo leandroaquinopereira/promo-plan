@@ -88,7 +88,6 @@ export const sendSMSConfirmation = createServerAction()
         codeId: document.id,
       }
     } catch (error) {
-      console.log(error)
       if (error instanceof KMSThrottlingException) {
         return {
           success: false,
