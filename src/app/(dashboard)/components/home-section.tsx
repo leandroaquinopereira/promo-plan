@@ -1,5 +1,5 @@
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
-import { Button } from '@promo/components/ui/button'
+import { Button, buttonVariants } from '@promo/components/ui/button'
 import {
   Card,
   CardContent,
@@ -9,7 +9,9 @@ import {
 } from '@promo/components/ui/card'
 import { Muted } from '@promo/components/ui/typography'
 import { auth } from '@promo/lib/next-auth/auth'
+import { cn } from '@promo/lib/utils'
 import { ArrowRight } from 'lucide-react'
+import Link from 'next/link'
 
 export async function HomeSection() {
   const session = await auth()
@@ -19,6 +21,7 @@ export async function HomeSection() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
+      className="mt-4"
     >
       <Card>
         <CardContent>
@@ -41,10 +44,13 @@ export async function HomeSection() {
               Há <strong>8</strong> eventos nos próximos 7 dias
             </Muted>
 
-            <Button className="w-9 sm:w-fit">
+            <Link
+              href="/guides"
+              className={cn(buttonVariants(), 'w-9 sm:w-fit')}
+            >
               <span className="max-sm:hidden">Ver eventos</span>
               <ArrowRight className="size-4" />
-            </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>
