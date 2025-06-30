@@ -24,6 +24,7 @@ import {
   TooltipTrigger,
 } from '@promo/components/ui/tooltip'
 import { UserSituationEnum } from '@promo/enum/user-situation'
+import { UserStatusEnum } from '@promo/enum/user-status'
 import { dayjsApi } from '@promo/lib/dayjs'
 import { cn } from '@promo/lib/utils'
 import { formatPhoneNumber } from '@promo/utils/format-phone-number'
@@ -194,15 +195,22 @@ export function ListTableRow({ data: user }: ListTableRowProps) {
       </TableCell>
       <TableCell>
         <div className="flex flex-col gap-1">
-          {getStatusIndicator(user.isOnline, user.isWorking)}
+          {getStatusIndicator(
+            user.status === UserStatusEnum.ONLINE,
+            user.status === UserStatusEnum.WORKING,
+          )}
         </div>
       </TableCell>
       <TableCell>
         <Badge
-          variant={user.active ? 'default' : 'secondary'}
+          variant={
+            user.situation === UserSituationEnum.ACTIVE
+              ? 'default'
+              : 'secondary'
+          }
           className="w-fit text-xs"
         >
-          {user.active ? 'Ativo' : 'Inativo'}
+          {user.situation === UserSituationEnum.ACTIVE ? 'Ativo' : 'Inativo'}
         </Badge>
       </TableCell>
       <TableCell>{formatPhoneNumber(user.phone)}</TableCell>

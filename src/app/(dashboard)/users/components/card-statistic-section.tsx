@@ -9,6 +9,7 @@ import {
   collection,
   getCountFromServer,
   onSnapshot,
+  or,
   query,
   type Unsubscribe,
   where,
@@ -84,7 +85,10 @@ export function CardStatisticSection() {
         // counter query (unpaginated)
         const countQuery = query(
           coll,
-          and(where('situation', '==', UserStatusEnum.ONLINE)),
+          or(
+            where('status', '==', UserStatusEnum.ONLINE),
+            where('status', '==', UserStatusEnum.WORKING),
+          ),
         )
 
         const total = await getCountFromServer(countQuery)
