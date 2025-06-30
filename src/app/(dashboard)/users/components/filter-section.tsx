@@ -18,8 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@promo/components/ui/select'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@promo/components/ui/tooltip'
 import { brazilianStates } from '@promo/constants/brazilian-states'
-import { Search } from 'lucide-react'
+import { Info, Search } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 
 export function FilterSection() {
@@ -37,6 +42,10 @@ export function FilterSection() {
 
   const [status, setStatus] = useQueryState('status', {
     defaultValue: 'all',
+  })
+
+  const [situation, setSituation] = useQueryState('situation', {
+    defaultValue: 'active',
   })
 
   function handleSetSearch(value: string) {
@@ -59,8 +68,8 @@ export function FilterSection() {
             forma rápida e eficiente.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
-          <div className="grid gap-4 md:grid-cols-4">
+        <CardContent className="p-0 @container">
+          <div className="grid gap-4 @md:grid-cols-2 @lg:grid-cols-3">
             <div className="flex flex-col gap-2">
               <Label className="text-sm font-medium">Nome ou Telefone</Label>
               <div className="relative">
@@ -135,6 +144,56 @@ export function FilterSection() {
                   <SelectItem value="offline">Offline</SelectItem>
                   {/* <SelectItem value="active">Ativos</SelectItem>
                   <SelectItem value="inactive">Inativos</SelectItem> */}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label className="text-sm font-medium">
+                Situação do usuário
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="inline size-4 ml-1 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex items-start gap-2">
+                        <span className="inline-block size-2 bg-green-500 rounded-full mt-1.5 flex-shrink-0"></span>
+                        <div>
+                          <strong>Ativo:</strong> Conta ativa e funcional
+                        </div>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="inline-block size-2 bg-red-500 rounded-full mt-1.5 flex-shrink-0"></span>
+                        <div>
+                          <strong>Inativo:</strong> Conta desabilitada
+                          {/* temporariamente */}
+                        </div>
+                      </li>
+                      {/* <li className="flex items-start gap-2">
+                        <span className="inline-block size-2 bg-red-500 rounded-full mt-1.5 flex-shrink-0"></span>
+                        <div>
+                          <strong>Deletado:</strong> Conta removida
+                          permanentemente
+                        </div>
+                      </li> */}
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              </Label>
+              <Select
+                value={situation}
+                onValueChange={(value) => {
+                  setSituation(value)
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Situação do usuário" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Ativos</SelectItem>
+                  <SelectItem value="inactive">Inativos</SelectItem>
+                  {/* <SelectItem value="deleted">Deletados</SelectItem> */}
                 </SelectContent>
               </Select>
             </div>

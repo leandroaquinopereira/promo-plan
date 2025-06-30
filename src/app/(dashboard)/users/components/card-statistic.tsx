@@ -14,7 +14,7 @@ type CardStatisticProps = {
   icon: ElementType
 }
 
-export async function CardStatistic({
+export function CardStatistic({
   title,
   value,
   description,

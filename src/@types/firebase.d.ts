@@ -41,6 +41,8 @@ export type Role = {
   createdAt: firestore.Timestamp
 }
 
+export type UserSituation = 'active' | 'inactive' | 'deleted'
+
 export interface User {
   id: string
   name: string
@@ -57,4 +59,5 @@ export interface User {
   updatedBy: string
   lastLoggedAt: firestore.Timestamp
   avatar?: string
+  situation: UserSituation
 }

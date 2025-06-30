@@ -7,7 +7,10 @@ import { getFirebaseApps } from '@promo/lib/firebase/server'
 import { z } from 'zod'
 import { createServerAction } from 'zsa'
 
-export const checkIfUserExists = createServerAction()
+import { publicProcedure } from './procedures/public-procedure'
+
+export const checkIfUserExists = publicProcedure
+  .createServerAction()
   .input(
     z.object({
       phone: z.string(),
@@ -27,21 +30,10 @@ export const checkIfUserExists = createServerAction()
       ]),
     }),
   )
-  .handler(async ({ input }) => {
+  .handler(async ({ input, ctx }) => {
     const { phone } = input
 
-    const apps = getFirebaseApps()
-    if (!apps) {
-      return {
-        error: {
-          message: 'Firebase apps not initialized',
-          code: FirebaseErrorCode.FIREBASE_APPS_NOT_INITIALIZED,
-        },
-        exists: ActionsSuccessCodes.FIREBASE_USER_NOT_EXISTS,
-      }
-    }
-
-    const { firestore } = apps
+    const { firestore } = ctx.apps
     const user = await firestore.collection(Collections.USERS).doc(phone).get()
     if (!user.exists) {
       return {

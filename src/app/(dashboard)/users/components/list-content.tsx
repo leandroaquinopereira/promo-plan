@@ -1,6 +1,6 @@
 'use client'
 
-import type { User } from '@promo/@types/firebase'
+import type { Role, User } from '@promo/@types/firebase'
 import { Collections } from '@promo/collections'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { Card, CardContent } from '@promo/components/ui/card'
@@ -23,26 +23,25 @@ import {
   getDoc,
   getDocs,
   limit,
+  onSnapshot,
   orderBy,
   query,
   type QueryFilterConstraint,
+  type Unsubscribe,
   where,
 } from 'firebase/firestore'
 import { LoaderPinwheel, UserSearch } from 'lucide-react'
 import { parseAsInteger, useQueryState } from 'nuqs'
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 
 import { ListHeaderSection } from './list-header-section'
 import { ListPaginationSection } from './list-pagination-section'
 import { ListTableHeader } from './list-table-header'
 import { ListTableRow } from './list-table-row'
 
-const totalUsers = mockUsers.length
-const onlineUsers = mockUsers.filter((user) => user.isOnline).length
-const workingUsers = mockUsers.filter((user) => user.isWorking).length
-
 export function ListContent() {
   const [isLoadingUsers, startTransition] = useTransition()
+  const unsubscribeRef = useRef<Unsubscribe | null>(null)
 
   const [search] = useQueryState('search', {
     defaultValue: '',
@@ -60,6 +59,10 @@ export function ListContent() {
     defaultValue: 'all',
   })
 
+  const [situation] = useQueryState('situation', {
+    defaultValue: 'active',
+  })
+
   const [currentPage] = useQueryState(
     'current-page',
     parseAsInteger.withDefault(1),
@@ -74,10 +77,16 @@ export function ListContent() {
   })
 
   useEffect(() => {
-    async function fetchFn() {
+    async function setupRealtimeListener() {
       try {
+        // cleaning up previous listener if exists
+        if (unsubscribeRef.current) {
+          unsubscribeRef.current()
+        }
+
         const coll = collection(firestore, Collections.USERS)
         const constraints: QueryFilterConstraint[] = []
+
         if (state !== 'all') {
           constraints.push(where('state', '==', state))
         }
@@ -100,69 +109,117 @@ export function ListContent() {
           constraints.push(where('status', '==', status))
         }
 
+        // paginated query
         const q = query(
           coll,
           and(
-            where('row', '>=', (currentPage - 1) * 10),
+            where(
+              'row',
+              '>=',
+              (currentPage - 1) * appConfiguration.listItemsPerPage,
+            ),
+            where('row', '<', currentPage * appConfiguration.listItemsPerPage),
             where('searchQuery', 'array-contains-any', [
               normalizeText(search) || EMPTY_STRING,
             ]),
             ...constraints,
-            where('active', '==', true),
+            where('situation', '==', situation),
           ),
           orderBy('row'),
           limit(appConfiguration.listItemsPerPage),
         )
 
-        const count = await getCountFromServer(
-          query(
-            coll,
-            and(
-              where('searchQuery', 'array-contains-any', [
-                normalizeText(search) || EMPTY_STRING,
-              ]),
-              ...constraints,
-              where('active', '==', true),
-            ),
+        // counter query (unpaginated)
+        const countQuery = query(
+          coll,
+          and(
+            where('searchQuery', 'array-contains-any', [
+              normalizeText(search) || EMPTY_STRING,
+            ]),
+            ...constraints,
+            where('situation', '==', situation),
           ),
         )
 
-        const snapshot = await getDocs(q)
-        const users = []
+        const roleCaching = new Map<string, Role>()
 
-        const roleColl = collection(firestore, Collections.ROLES)
-        let user: User
-        for await (const snap of snapshot.docs) {
-          user = {
-            id: snap.id,
-            ...snap.data(),
-          } as User
+        //realtime listener
+        unsubscribeRef.current = onSnapshot(
+          q,
+          async (snapshot) => {
+            startTransition(async () => {
+              try {
+                // getting updated count from server
+                const countSnapshot = await getCountFromServer(countQuery)
+                const total = countSnapshot.data().count
 
-          const roleRefStr = user.role
-          const roleId =
-            typeof roleRefStr === 'string'
-              ? String(roleRefStr).replace('/roles/', '')
-              : roleRefStr.id
+                // processing snapshot data
+                const users: User[] = []
+                const roleColl = collection(firestore, Collections.ROLES)
 
-          const roleRef = doc(roleColl, roleId)
-          const role = await getDoc(roleRef)
+                for (const snap of snapshot.docs) {
+                  const user: User = {
+                    id: snap.id,
+                    ...snap.data(),
+                  } as User
 
-          user.role = {
-            id: role.id,
-            ...role.data(),
-          }
+                  // getting role reference and fetching role data
+                  const roleRefStr = user.role
+                  const roleId =
+                    typeof roleRefStr === 'string'
+                      ? String(roleRefStr).replace('/roles/', '')
+                      : roleRefStr.id
 
-          user.lastLoggedAt = user.lastLoggedAt?.toDate()
+                  // check if role is already cached
+                  let role: Role | undefined = roleCaching.get(roleId)
 
-          users.push(user)
-        }
+                  if (!role) {
+                    // if not cached, fetch from Firestore
+                    const roleDoc = await getDoc(doc(roleColl, roleId))
+                    if (roleDoc.exists()) {
+                      role = {
+                        id: roleDoc.id,
+                        ...roleDoc.data(),
+                      } as Role
 
-        setResponse({
-          total: count.data().count,
-          users,
-        })
+                      roleCaching.set(roleId, role)
+                    }
+                  }
+
+                  user.role = role
+
+                  if (user.lastLoggedAt) {
+                    user.lastLoggedAt = user.lastLoggedAt.toDate()
+                  }
+
+                  users.push(user)
+                }
+
+                setResponse({
+                  total,
+                  users,
+                })
+              } catch (error) {
+                console.error('Error processing realtime update:', error)
+                // Do not set response to empty here, keep previous state
+                // setResponse({
+                //   total: 0,
+                //   users: [],
+                // })
+              }
+            })
+          },
+          (error) => {
+            console.error('Error in realtime listener:', error)
+            // Do not set response to empty here, keep previous state
+            // setResponse({
+            //   total: 0,
+            //   users: [],
+            // })
+          },
+        )
       } catch (error) {
-        console.error('Error fetching users:', error)
+        console.error('Error setting up realtime listener:', error)
         setResponse({
           total: 0,
           users: [],
@@ -170,8 +227,25 @@ export function ListContent() {
       }
     }
 
-    startTransition(fetchFn)
-  }, [search, state, permission, status, currentPage])
+    setupRealtimeListener()
+
+    // cleaning up the listener on component unmount
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+        unsubscribeRef.current = null
+      }
+    }
+  }, [search, state, permission, status, currentPage, situation])
+
+  // cleaning up the listener on component unmount
+  useEffect(() => {
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+      }
+    }
+  }, [])
 
   return (
     <MotionDiv
@@ -182,8 +256,8 @@ export function ListContent() {
       <Card className="p-4">
         <ListHeaderSection
           totalUsers={response?.total || 0}
-          onlineUsers={onlineUsers}
-          workingUsers={workingUsers}
+          onlineUsers={0}
+          workingUsers={0}
         />
         <CardContent className="p-0 m-0">
           <Table>

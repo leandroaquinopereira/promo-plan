@@ -295,10 +295,10 @@ export function RegisterUserForm({ onSubmit }: RegisterUserFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="freelancer">
+                    <SelectItem value="3UW2Xcq1kv5ZYF2ZO6cl">
                       Freelancer (Operacional)
                     </SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="WlHvVUKhT7jNgslshkbH">Admin</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

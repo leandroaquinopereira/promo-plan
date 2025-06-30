@@ -1,4 +1,6 @@
-import type { User } from '@promo/@types/firebase'
+import type { User, UserSituation } from '@promo/@types/firebase'
+import { deleteUserAction } from '@promo/actions/delete-user'
+import { toggleUserSituationAction } from '@promo/actions/toggle-user-situation'
 import {
   Avatar,
   AvatarFallback,
@@ -21,6 +23,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@promo/components/ui/tooltip'
+import { UserSituationEnum } from '@promo/enum/user-situation'
 import { dayjsApi } from '@promo/lib/dayjs'
 import { cn } from '@promo/lib/utils'
 import { formatPhoneNumber } from '@promo/utils/format-phone-number'
@@ -37,14 +40,112 @@ import {
   UserX,
 } from 'lucide-react'
 import Link from 'next/link'
+import { toast } from 'sonner'
+import { useServerAction } from 'zsa-react'
 
 type ListTableRowProps = {
   data: User
 }
 
 export function ListTableRow({ data: user }: ListTableRowProps) {
+  const { execute } = useServerAction(toggleUserSituationAction)
+  const { execute: deleteUser } = useServerAction(deleteUserAction)
+
   function getPermissionBadgeVariant(permission: 'Admin' | 'Freelancer') {
     return permission === 'Admin' ? 'default' : 'secondary'
+  }
+
+  async function handleToggleUserSituation(
+    specificSituation: UserSituation | undefined = undefined,
+  ) {
+    try {
+      toast.promise(
+        execute({
+          userId: user.id,
+          situation:
+            specificSituation || user.situation === UserSituationEnum.ACTIVE
+              ? UserSituationEnum.INACTIVE
+              : UserSituationEnum.ACTIVE,
+        }),
+        {
+          loading:
+            user.situation === 'active'
+              ? 'Desativando usuário...'
+              : 'Ativando usuário...',
+          success: (result) => {
+            if (!result || typeof result !== 'object') {
+              throw new Error('Resposta inválida do servidor')
+            }
+
+            if ('error' in result && result.error) {
+              throw new Error(
+                // @ts-expect-error ignore error type for now
+                result.error?.message || 'Erro ao alterar situação do usuário',
+              )
+            }
+
+            if ('success' in result && !result.success) {
+              throw new Error('Falha ao alterar situação do usuário')
+            }
+
+            return user.situation === 'active'
+              ? 'Usuário desativado com sucesso.'
+              : 'Usuário ativado com sucesso.'
+          },
+          error: (error) => {
+            if (error instanceof Error) {
+              return error.message
+            }
+
+            return user.situation === 'active'
+              ? 'Erro ao desativar usuário.'
+              : 'Erro ao ativar usuário.'
+          },
+        },
+      )
+    } catch (error) {
+      console.error('Unexpected error:', error)
+    }
+  }
+
+  async function handleDeleteUser() {
+    try {
+      toast.promise(
+        deleteUser({
+          userId: user.id,
+        }),
+        {
+          loading: 'Deletando usuário...',
+          success: (result) => {
+            if (!result || typeof result !== 'object') {
+              throw new Error('Resposta inválida do servidor')
+            }
+
+            if ('error' in result && result.error) {
+              throw new Error(
+                // @ts-expect-error ignore error type for now
+                result.error?.message || 'Erro ao deletar usuário',
+              )
+            }
+
+            if ('success' in result && !result.success) {
+              throw new Error('Falha ao deletar usuário')
+            }
+
+            return 'Usuário deletado com sucesso.'
+          },
+          error: (error) => {
+            if (error instanceof Error) {
+              return error.message
+            }
+
+            return 'Erro ao deletar usuário.'
+          },
+        },
+      )
+    } catch (error) {
+      console.error('Unexpected error:', error)
+    }
   }
 
   function getStatusIndicator(isOnline: boolean, isWorking: boolean) {
@@ -75,7 +176,7 @@ export function ListTableRow({ data: user }: ListTableRowProps) {
   }
 
   return (
-    <TableRow className={cn(!user.active && 'opacity-50')}>
+    <TableRow className={cn(user.situation !== 'active' && 'opacity-50')}>
       <TableCell>
         <Checkbox />
       </TableCell>
@@ -170,24 +271,41 @@ export function ListTableRow({ data: user }: ListTableRowProps) {
                 <Edit3 className="size-4 mr-2" />
                 Editar
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                {user.active ? (
-                  <div className="flex items-center gap-2">
-                    <UserX className="size-4 mr-2" />
-                    Desativar
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <UserCheck className="size-4 mr-2" />
-                    Ativar
-                  </div>
-                )}
-              </DropdownMenuItem>
+              {user.situation !== 'deleted' && (
+                <DropdownMenuItem onClick={() => handleToggleUserSituation()}>
+                  {user.situation === 'active' ? (
+                    <div className="flex items-center gap-2">
+                      <UserX className="size-4 mr-2" />
+                      Desativar
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <UserCheck className="size-4 mr-2" />
+                      Ativar
+                    </div>
+                  )}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive group">
-                <Trash2 className="size-4 mr-2 text-destructive group-hover:text-inherit" />
-                Excluir
-              </DropdownMenuItem>
+              {user.situation === 'deleted' && (
+                <DropdownMenuItem
+                  onClick={() =>
+                    handleToggleUserSituation(UserSituationEnum.ACTIVE)
+                  }
+                >
+                  <UserCheck className="size-4 mr-2" />
+                  Reativar usuário
+                </DropdownMenuItem>
+              )}
+              {user.situation !== 'deleted' && (
+                <DropdownMenuItem
+                  className="text-destructive group"
+                  onClick={handleDeleteUser}
+                >
+                  <Trash2 className="size-4 mr-2 text-destructive group-hover:text-inherit" />
+                  Excluir
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

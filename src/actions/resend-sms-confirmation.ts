@@ -19,25 +19,19 @@ import { firestore } from 'firebase-admin'
 import { z } from 'zod'
 import { createServerAction } from 'zsa'
 
-export const resendSMSConfirmation = createServerAction()
+import { publicProcedure } from './procedures/public-procedure'
+
+export const resendSMSConfirmation = publicProcedure
+  .createServerAction()
   .input(
     z.object({
       codeId: z.string(),
     }),
   )
-  .handler(async ({ input }) => {
+  .handler(async ({ input, ctx }) => {
     const { codeId } = input
 
-    const apps = getFirebaseApps()
-    if (!apps) {
-      return {
-        error: {
-          message: 'Firebase apps not initialized',
-          code: FirebaseErrorCode.FIREBASE_APPS_NOT_INITIALIZED,
-        },
-      }
-    }
-
+    const apps = ctx.apps
     const verificationCodeInFirebase = await apps.firestore
       .collection(Collections.VERIFICATION_CODES)
       .doc(codeId)

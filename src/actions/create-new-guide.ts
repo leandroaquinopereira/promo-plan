@@ -10,7 +10,10 @@ import { firestore } from 'firebase-admin'
 import { z } from 'zod'
 import { createServerAction } from 'zsa'
 
-export const createNewGuide = createServerAction()
+import { authProcedure } from './procedures/auth-procedure'
+
+export const createNewGuide = authProcedure
+  .createServerAction()
   .input(
     z.object({
       title: z.string().min(1, 'Título é obrigatório'),
@@ -30,41 +33,18 @@ export const createNewGuide = createServerAction()
       message: z.string().optional(),
     }),
   )
-  .handler(async ({ input }) => {
+  .handler(async ({ input, ctx }) => {
     const { title, description, category } = input
-    const session = await auth()
-
-    const apps = await getFirebaseApps()
-    if (!apps) {
-      return {
-        success: false,
-        error: {
-          message: 'Firebase apps not initialized',
-          code: FirebaseErrorCode.FIREBASE_APPS_NOT_INITIALIZED,
-        },
-      }
-    }
-
-    if (!session?.user) {
-      return {
-        success: false,
-        error: {
-          message: 'User not authenticated',
-          code: FirebaseErrorCode.FIREBASE_APPS_NOT_INITIALIZED,
-        },
-      }
-    }
-
     const substrings = generateSubstrings(title)
 
-    const guide = await apps.firestore.collection(Collections.GUIDES).add({
+    const guide = await ctx.apps.firestore.collection(Collections.GUIDES).add({
       title,
       description,
       category,
       createdAt: firestore.Timestamp.now(),
       updatedAt: firestore.Timestamp.now(),
-      createdBy: session.user.id,
-      updatedBy: session.user.id,
+      createdBy: ctx.session.user.id,
+      updatedBy: ctx.session.user.id,
       active: true,
       documents: [],
       searchQuery: Array.from(new Set(substrings)),
