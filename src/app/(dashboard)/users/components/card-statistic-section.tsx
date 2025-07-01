@@ -2,6 +2,7 @@
 
 import { Collections } from '@promo/collections'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
+import { EventStatusEnum } from '@promo/enum/event-status'
 import { UserStatusEnum } from '@promo/enum/user-status'
 import { firestore } from '@promo/lib/firebase/client'
 import {
@@ -15,6 +16,7 @@ import {
   where,
 } from 'firebase/firestore'
 import { Activity, Clock, UserIcon } from 'lucide-react'
+import { useSession } from 'next-auth/react'
 import { useEffect, useRef, useState } from 'react'
 
 import { CardStatistic } from './card-statistic'
@@ -130,12 +132,12 @@ export function CardStatisticSection() {
           countWorkingUnsubscribeRef.current()
         }
 
-        const coll = collection(firestore, Collections.USERS)
+        const coll = collection(firestore, Collections.EVENTS)
 
         // counter query (unpaginated)
         const countQuery = query(
           coll,
-          and(where('situation', '==', UserStatusEnum.WORKING)),
+          and(where('status', '==', EventStatusEnum.IN_PROGRESS)),
         )
 
         const total = await getCountFromServer(countQuery)

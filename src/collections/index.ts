@@ -3,4 +3,5 @@ export enum Collections {
   VERIFICATION_CODES = 'verification_codes',
   GUIDES = 'guides',
   ROLES = 'roles',
+  EVENTS = 'events',
 }

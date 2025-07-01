@@ -11,7 +11,8 @@ import {
   TableRow,
 } from '@promo/components/ui/table'
 import { appConfiguration } from '@promo/constants/app-configuration'
-import { mockUsers } from '@promo/constants/mocks'
+import { EventStatusEnum } from '@promo/enum/event-status'
+import { UserStatusEnum } from '@promo/enum/user-status'
 import { firestore } from '@promo/lib/firebase/client'
 import { EMPTY_STRING } from '@promo/utils/generates-substrings-to-query-search'
 import { normalizeText } from '@promo/utils/normalize-text'
@@ -190,6 +191,32 @@ export function ListContent() {
 
                   if (user.lastLoggedAt) {
                     user.lastLoggedAt = user.lastLoggedAt.toDate()
+                  }
+
+                  const eventsInProgressCount = query(
+                    collection(firestore, Collections.EVENTS),
+                    and(
+                      where(
+                        'responsible',
+                        '==',
+                        doc(firestore, Collections.USERS, user.id),
+                      ),
+                      where('status', '==', EventStatusEnum.IN_PROGRESS),
+                    ),
+                  )
+
+                  const eventsInProgressSnapshot = await getCountFromServer(
+                    eventsInProgressCount,
+                  )
+
+                  console.log(
+                    'Events in progress count:',
+                    eventsInProgressSnapshot.data().count,
+                  )
+
+                  const isWorking = eventsInProgressSnapshot.data().count > 0
+                  if (isWorking) {
+                    user.status = UserStatusEnum.WORKING
                   }
 
                   users.push(user)

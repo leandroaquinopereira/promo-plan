@@ -13,6 +13,7 @@ export const updateUserPresenceAction = authProcedure
   .input(
     z.object({
       userId: z.string().min(1, 'User ID is required'),
+      situation: z.enum(['online', 'offline', 'working']).optional(),
     }),
   )
   .handler(async ({ input, ctx }) => {
@@ -33,7 +34,7 @@ export const updateUserPresenceAction = authProcedure
 
     try {
       await userRef.update({
-        status: UserStatusEnum.ONLINE,
+        status: input.situation || UserStatusEnum.OFFLINE,
       })
 
       return {

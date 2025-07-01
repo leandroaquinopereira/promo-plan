@@ -1,194 +1,152 @@
 'use client'
 
 import { updateUserPresenceAction } from '@promo/actions/update-presence'
-import { dayjsApi } from '@promo/lib/dayjs'
-import { cleanUserId } from '@promo/utils/clean-user-id'
 import { useSession } from 'next-auth/react'
 import { type ReactNode, useCallback, useEffect, useRef } from 'react'
 import { useServerAction } from 'zsa-react'
-
-const HEARTBEAT_INTERVAL = 2 * 60 * 1000 // 2 minutos
-const INACTIVITY_TIMEOUT = 10 * 60 * 1000 // 10 minutos
 
 type HeartBeatAdapterProps = {
   children: ReactNode | ReactNode[]
 }
 
 export function HeartBeatAdapter({ children }: HeartBeatAdapterProps) {
-  const { execute, isPending: isUpdatingUserPresence } = useServerAction(
-    updateUserPresenceAction,
-  )
-
+  const { execute, isPending } = useServerAction(updateUserPresenceAction)
   const session = useSession()
-  const onlinePresenceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const inactivityTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const lastActivityRef = useRef(dayjsApi())
-  const lastPresenceUpdateRef = useRef(dayjsApi().subtract(1, 'hour'))
-  const activityDebounceRef = useRef<NodeJS.Timeout | null>(null)
+
+  const intervalIdRef = useRef<NodeJS.Timeout | null>(null)
+  const offlineTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isUserActiveRef = useRef<boolean>(true)
+  const updatePresenceRef = useRef<
+    ((userId: string, situation: 'online' | 'offline') => Promise<void>) | null
+  >(null)
 
   const updatePresence = useCallback(
-    function (isOnline: boolean) {
-      if (session.status !== 'authenticated' || !session.data?.user.id) {
+    async function updatePresence(
+      userId: string,
+      situation: 'online' | 'offline' = 'online',
+    ) {
+      if (isPending) {
         return
       }
 
-      // Evita chamadas muito frequentes (mínimo 15 segundos entre updates)
-      const now = dayjsApi()
-      if (isOnline && now.diff(lastPresenceUpdateRef.current, 'seconds') < 15) {
-        return
-      }
-
-      const cleanedUserId = cleanUserId(session.data.user.id)
-
-      if (isOnline) {
-        lastPresenceUpdateRef.current = now
-        execute({
-          userId: cleanedUserId,
-        }).catch((error) => {
-          console.error('Failed to update user presence:', error)
+      try {
+        await execute({
+          userId,
+          situation,
         })
-      }
-      // Note: Para offline, o backend irá lidar com a lógica através de timeouts
+      } catch (error) {}
     },
-    [execute, session.data?.user.id, session.status],
+    [execute, isPending],
   )
 
-  const resetInactivityTimer = useCallback(
-    function () {
-      lastActivityRef.current = dayjsApi()
-
-      if (inactivityTimeoutRef.current) {
-        clearTimeout(inactivityTimeoutRef.current)
-      }
-
-      inactivityTimeoutRef.current = setTimeout(() => {
-        updatePresence(false)
-      }, INACTIVITY_TIMEOUT)
-    },
-    [updatePresence],
-  )
-
-  const handleActivity = useCallback(
-    function () {
-      lastActivityRef.current = dayjsApi()
-      resetInactivityTimer()
-
-      // Debounce para evitar muitas chamadas
-      if (activityDebounceRef.current) {
-        clearTimeout(activityDebounceRef.current)
-      }
-
-      activityDebounceRef.current = setTimeout(() => {
-        updatePresence(true)
-      }, 5000) // 5 segundos de debounce
-    },
-    [resetInactivityTimer, updatePresence],
-  )
-
-  const handleVisibilityChange = useCallback(
-    function () {
-      if (document.hidden) {
-        updatePresence(false)
-      } else {
-        handleActivity()
-      }
-    },
-    [handleActivity, updatePresence],
-  )
-
-  const handleBeforeUnload = useCallback(
-    function () {
-      updatePresence(false)
-    },
-    [updatePresence],
-  )
+  updatePresenceRef.current = updatePresence
 
   useEffect(() => {
-    if (session.status !== 'authenticated') {
+    // Limpa intervals anteriores
+    if (intervalIdRef.current) {
+      clearInterval(intervalIdRef.current)
+      intervalIdRef.current = null
+    }
+
+    if (offlineTimeoutRef.current) {
+      clearTimeout(offlineTimeoutRef.current)
+      offlineTimeoutRef.current = null
+    }
+
+    if (session.status !== 'authenticated' || !session.data?.user) {
       return
     }
 
-    const userId = session.data?.user.id
-    if (!userId) {
-      return
+    const userId = session.data.user.id
+
+    const clearOfflineTimeout = () => {
+      if (offlineTimeoutRef.current) {
+        clearTimeout(offlineTimeoutRef.current)
+        offlineTimeoutRef.current = null
+      }
     }
 
-    // Marca como online ao iniciar
-    updatePresence(true)
-    resetInactivityTimer()
+    const startOfflineTimeout = () => {
+      clearOfflineTimeout()
+      // 2 minutos = 120000ms
+      offlineTimeoutRef.current = setTimeout(() => {
+        isUserActiveRef.current = false
+        updatePresenceRef.current?.(userId, 'offline')
+      }, 120000)
+    }
 
-    // Heartbeat interval
-    onlinePresenceTimeoutRef.current = setInterval(() => {
-      if (isUpdatingUserPresence) {
-        return
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Troca de foco - inicia timeout de 2min
+        startOfflineTimeout()
+      } else {
+        // Voltou ao foco - cancela timeout e marca como online
+        clearOfflineTimeout()
+        isUserActiveRef.current = true
+        updatePresenceRef.current?.(userId, 'online')
       }
+    }
 
-      const timeSinceLastActivity = dayjsApi().diff(
-        lastActivityRef.current,
-        'milliseconds',
-      )
-      if (timeSinceLastActivity < INACTIVITY_TIMEOUT) {
-        updatePresence(true)
+    const handleFocus = () => {
+      clearOfflineTimeout()
+      isUserActiveRef.current = true
+      updatePresenceRef.current?.(userId, 'online')
+    }
+
+    const handleBlur = () => {
+      // Troca de foco - inicia timeout de 2min
+      startOfflineTimeout()
+    }
+
+    const handleBeforeUnload = () => {
+      // Fechou navegador - offline imediato
+      clearOfflineTimeout()
+      isUserActiveRef.current = false
+      updatePresenceRef.current?.(userId, 'offline')
+    }
+
+    const handlePageHide = () => {
+      // Fechou navegador - offline imediato
+      clearOfflineTimeout()
+      isUserActiveRef.current = false
+      updatePresenceRef.current?.(userId, 'offline')
+    }
+
+    // Marca como ativo e online inicialmente
+    isUserActiveRef.current = true
+    updatePresenceRef.current?.(userId, 'online')
+
+    intervalIdRef.current = setInterval(() => {
+      // Só envia online se o usuário estiver ativo E a página estiver visível
+      if (isUserActiveRef.current && !document.hidden) {
+        updatePresenceRef.current?.(userId, 'online')
       }
-    }, HEARTBEAT_INTERVAL)
+    }, 10_000)
 
-    // Activity events
-    const activityEvents = [
-      'mousedown',
-      'mousemove',
-      'keypress',
-      'scroll',
-      'touchstart',
-      'click',
-    ]
-    activityEvents.forEach((event) => {
-      document.addEventListener(event, handleActivity, { passive: true })
-    })
-
-    // Visibility and unload events
     document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+    window.addEventListener('blur', handleBlur)
     window.addEventListener('beforeunload', handleBeforeUnload)
-    window.addEventListener('focus', handleActivity)
-    window.addEventListener('blur', () => updatePresence(false))
+    window.addEventListener('pagehide', handlePageHide)
 
     return () => {
-      if (onlinePresenceTimeoutRef.current) {
-        clearInterval(onlinePresenceTimeoutRef.current)
-        onlinePresenceTimeoutRef.current = null
+      if (intervalIdRef.current) {
+        clearInterval(intervalIdRef.current)
+        intervalIdRef.current = null
       }
 
-      if (inactivityTimeoutRef.current) {
-        clearTimeout(inactivityTimeoutRef.current)
-      }
-
-      if (activityDebounceRef.current) {
-        clearTimeout(activityDebounceRef.current)
-      }
-
-      // Remove event listeners
-      activityEvents.forEach((event) => {
-        document.removeEventListener(event, handleActivity)
-      })
+      clearOfflineTimeout()
 
       document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+      window.removeEventListener('blur', handleBlur)
       window.removeEventListener('beforeunload', handleBeforeUnload)
-      window.removeEventListener('focus', handleActivity)
-      window.removeEventListener('blur', () => updatePresence(false))
+      window.removeEventListener('pagehide', handlePageHide)
 
-      // Marca como offline ao desmontar
-      updatePresence(false)
+      updatePresenceRef.current?.(userId, 'offline')
     }
-  }, [
-    execute,
-    isUpdatingUserPresence,
-    session.data?.user.id,
-    session.status,
-    updatePresence,
-    resetInactivityTimer,
-    handleActivity,
-    handleVisibilityChange,
-    handleBeforeUnload,
-  ])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.status, session.data?.user?.id])
 
   return children
 }
