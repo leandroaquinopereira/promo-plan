@@ -100,6 +100,17 @@ export function ListContent() {
 
   function handleDeleteSelectedRows() {
     try {
+      const hasActiveUsersOnSelectedRows = response.users.some(
+        (user) => user.situation === 'active' && selectedRows.has(user.id),
+      )
+
+      if (hasActiveUsersOnSelectedRows) {
+        toast.error(
+          'Não é possível deletar usuários ativos. Desabilite-os primeiro.',
+        )
+        return
+      }
+
       toast.promise(
         execute({
           users: Array.from(selectedRows),
@@ -271,11 +282,6 @@ export function ListContent() {
                     eventsInProgressCount,
                   )
 
-                  console.log(
-                    'Events in progress count:',
-                    eventsInProgressSnapshot.data().count,
-                  )
-
                   const isWorking = eventsInProgressSnapshot.data().count > 0
                   if (isWorking) {
                     user.status = UserStatusEnum.WORKING
@@ -288,6 +294,8 @@ export function ListContent() {
                   total,
                   users,
                 })
+
+                setSelectedRows(new Set())
               } catch (error) {
                 console.error('Error processing realtime update:', error)
                 // Do not set response to empty here, keep previous state

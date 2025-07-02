@@ -312,7 +312,7 @@ export function ListTableRow({
                   )}
                 </DropdownMenuItem>
               )}
-              <DropdownMenuSeparator />
+              {user.situation !== 'active' && <DropdownMenuSeparator />}
               {user.situation === 'deleted' && (
                 <DropdownMenuItem
                   onClick={() =>
@@ -323,7 +323,9 @@ export function ListTableRow({
                   Reativar usuário
                 </DropdownMenuItem>
               )}
-              {user.situation !== 'deleted' && (
+              {![UserSituationEnum.ACTIVE, UserSituationEnum.DELETED].includes(
+                user.situation as UserSituationEnum,
+              ) && (
                 <DropdownMenuItem
                   className="text-destructive group"
                   onClick={handleDeleteUser}

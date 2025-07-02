@@ -37,6 +37,16 @@ export const deleteUserAction = authProcedure
       }
     }
 
+    if (userDoc.data()?.situation === UserSituationEnum.ACTIVE) {
+      return {
+        success: false,
+        error: {
+          code: FirebaseErrorCode.OBJECT_NOT_DISABLED,
+          message: `User with ID ${userRef.id} is not disabled and cannot be deleted`,
+        },
+      }
+    }
+
     await userRef.set(
       {
         situation: UserSituationEnum.DELETED,
