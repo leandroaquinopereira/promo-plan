@@ -1,12 +1,29 @@
 import { Checkbox } from '@promo/components/ui/checkbox'
 import { TableHead, TableHeader, TableRow } from '@promo/components/ui/table'
 
-export function ListTableHeader() {
+type ListTableHeaderProps = {
+  onSelectedAllRows?: (checked: boolean) => void
+  isAllSelected?: boolean
+}
+
+export function ListTableHeader({
+  isAllSelected,
+  onSelectedAllRows,
+}: ListTableHeaderProps) {
   return (
     <TableHeader>
       <TableRow className="h-16">
         <TableHead className="w-[50px]">
-          <Checkbox />
+          <Checkbox
+            checked={isAllSelected}
+            onCheckedChange={(checked) => {
+              if (checked !== 'indeterminate') {
+                onSelectedAllRows?.(checked)
+              } else {
+                onSelectedAllRows?.(false)
+              }
+            }}
+          />
         </TableHead>
         <TableHead>Usuário</TableHead>
         <TableHead>Status</TableHead>

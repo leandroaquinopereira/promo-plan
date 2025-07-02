@@ -1,7 +1,9 @@
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { Button } from '@promo/components/ui/button'
-import { UserPlus, UserX } from 'lucide-react'
+import { UserPlus } from 'lucide-react'
 import Link from 'next/link'
+
+import { DisableAllUsersSelected } from './disable-all-users-selected'
 
 export async function HeaderSection() {
   return (
@@ -18,10 +20,7 @@ export async function HeaderSection() {
         </p>
       </div>
       <div className="gap-3 grid grid-cols-1 @xl:flex @xl:items-start">
-        <Button variant="outline" className="w-full @lg:w-auto">
-          <UserX className="size-4" />
-          Desativar Selecionados
-        </Button>
+        <DisableAllUsersSelected />
         <Link href="/users/register">
           <Button className="w-full @lg:w-auto" variant="default">
             <UserPlus className="size-4" />

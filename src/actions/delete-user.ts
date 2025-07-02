@@ -39,7 +39,7 @@ export const deleteUserAction = authProcedure
 
     await userRef.set(
       {
-        situation: UserSituationEnum.ACTIVE,
+        situation: UserSituationEnum.DELETED,
       },
       {
         merge: true,

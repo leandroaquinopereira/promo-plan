@@ -3,6 +3,7 @@
 import { Collections } from '@promo/collections'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { EventStatusEnum } from '@promo/enum/event-status'
+import { UserSituationEnum } from '@promo/enum/user-situation'
 import { UserStatusEnum } from '@promo/enum/user-status'
 import { firestore } from '@promo/lib/firebase/client'
 import {
@@ -16,7 +17,6 @@ import {
   where,
 } from 'firebase/firestore'
 import { Activity, Clock, UserIcon } from 'lucide-react'
-import { useSession } from 'next-auth/react'
 import { useEffect, useRef, useState } from 'react'
 
 import { CardStatistic } from './card-statistic'
@@ -41,7 +41,10 @@ export function CardStatisticSection() {
         const coll = collection(firestore, Collections.USERS)
 
         // counter query (unpaginated)
-        const countQuery = query(coll)
+        const countQuery = query(
+          coll,
+          where('situation', '!=', UserSituationEnum.DELETED),
+        )
 
         const total = await getCountFromServer(countQuery)
         setTotalOfUsers(total.data().count || 0)

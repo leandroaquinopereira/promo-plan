@@ -2,8 +2,7 @@
 
 import { useRouter } from '@bprogress/next'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { createUserAction } from '@promo/actions/create-user'
-import { PasswordField } from '@promo/components/password-field'
+import { updateUserAction } from '@promo/actions/update-user'
 import { PhoneNumberField } from '@promo/components/phone-number-field'
 import { Button } from '@promo/components/ui/button'
 import {
@@ -15,7 +14,6 @@ import {
   FormMessage,
 } from '@promo/components/ui/form'
 import { Input } from '@promo/components/ui/input'
-import { Label } from '@promo/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -25,90 +23,64 @@ import {
 } from '@promo/components/ui/select'
 import { brazilianStates } from '@promo/constants/brazilian-states'
 import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
-import { cn } from '@promo/lib/utils'
 import { ArrowRight } from 'lucide-react'
+import { useParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { useServerAction } from 'zsa-react'
 
-const schema = z
-  .object({
-    name: z
-      .string({
-        required_error: 'Nome é obrigatório',
-      })
-      .min(2, 'Nome deve ter pelo menos 2 caracteres')
-      .max(100, 'Nome deve ter no máximo 100 caracteres'),
-    phone: z
-      .string({
-        required_error: 'Telefone é obrigatório',
-      })
-      .min(1, 'Telefone é obrigatório'),
-    state: z
-      .string({
-        required_error: 'Estado é obrigatório',
-      })
-      .min(1, 'Estado é obrigatório'),
-    city: z
-      .string({
-        required_error: 'Cidade é obrigatória',
-      })
-      .min(2, 'Cidade deve ter pelo menos 2 caracteres')
-      .max(100, 'Cidade deve ter no máximo 100 caracteres'),
-    permission: z.enum(['freelancer', 'admin'], {
-      required_error: 'Permissão é obrigatória',
-      invalid_type_error: 'Selecione uma permissão válida',
-    }),
-    password: z
-      .string({
-        required_error: 'Digite sua senha',
-      })
-      .min(8, 'A senha deve ter pelo menos 8 caracteres')
-      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])/, {
-        message:
-          'A senha deve conter pelo menos uma letra maiúscula, uma letra minúscula, um número e um caractere especial',
-      }),
-    confirmPassword: z.string({
-      required_error: 'Confirme sua senha',
-    }),
-  })
-  .refine(({ confirmPassword, password }) => confirmPassword === password, {
-    message: 'As senhas não coincidem',
-    path: ['confirmPassword'],
-  })
+const schema = z.object({
+  name: z
+    .string({
+      required_error: 'Nome é obrigatório',
+    })
+    .min(2, 'Nome deve ter pelo menos 2 caracteres')
+    .max(100, 'Nome deve ter no máximo 100 caracteres'),
+  phone: z
+    .string({
+      required_error: 'Telefone é obrigatório',
+    })
+    .min(1, 'Telefone é obrigatório'),
+  state: z
+    .string({
+      required_error: 'Estado é obrigatório',
+    })
+    .min(1, 'Estado é obrigatório'),
+  city: z
+    .string({
+      required_error: 'Cidade é obrigatória',
+    })
+    .min(2, 'Cidade deve ter pelo menos 2 caracteres')
+    .max(100, 'Cidade deve ter no máximo 100 caracteres'),
+  permission: z.string({
+    required_error: 'Permissão é obrigatória',
+    invalid_type_error: 'Selecione uma permissão válida',
+  }),
+})
 
 type Schema = z.infer<typeof schema>
 
-type RegisterUserFormProps = {
+type EditUserFormProps = {
   onSubmit?: (data: Schema) => void
+  defaultValues?: Partial<Schema>
 }
 
-export function RegisterUserForm({ onSubmit }: RegisterUserFormProps) {
-  const { execute } = useServerAction(createUserAction)
+export function EditUserForm({ onSubmit, defaultValues }: EditUserFormProps) {
+  const { execute } = useServerAction(updateUserAction)
 
   const router = useRouter()
 
+  const { userId } = useParams()
+
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
+    defaultValues,
   })
 
-  const password = form.watch('password')
-  const passwordRequirements = [
-    { label: 'Pelo menos 8 caracteres', met: password?.length >= 8 },
-    { label: 'Uma letra maiúscula', met: /[A-Z]/.test(password || '') },
-    { label: 'Uma letra minúscula', met: /[a-z]/.test(password || '') },
-    { label: 'Um número', met: /\d/.test(password || '') },
-    {
-      label: 'Um caractere especial',
-      met: /[!@#$%^&*(),.?":{}|<>]/.test(password || ''),
-    },
-  ]
-
-  async function handleRegisterUser({
+  async function handleUpdateUser({
     city,
     name,
-    password,
     phone,
     state,
     permission,
@@ -120,7 +92,7 @@ export function RegisterUserForm({ onSubmit }: RegisterUserFormProps) {
         state,
         city,
         permission,
-        password,
+        userId: userId as string,
       })
 
       if (resultError) {
@@ -136,7 +108,7 @@ export function RegisterUserForm({ onSubmit }: RegisterUserFormProps) {
         let message = 'Erro desconhecido ao salvar usuário.'
         switch (result.error?.code) {
           case FirebaseErrorCode.OBJECT_NOT_FOUND:
-            message = 'Guia não encontrado. Por favor, recarregue a página.'
+            message = 'Usuário não encontrado. Por favor, recarregue a página.'
             break
           case FirebaseErrorCode.FIREBASE_APPS_NOT_INITIALIZED:
             message =
@@ -158,15 +130,15 @@ export function RegisterUserForm({ onSubmit }: RegisterUserFormProps) {
             break
         }
 
-        toast.error(`Erro ao salvar usuário.`, {
+        toast.error(`Erro ao salvar guia.`, {
           description: message,
         })
 
         return
       }
 
-      toast.success('Usuário cadastrado com sucesso!', {
-        description: 'O usuário foi criado e pode fazer login no sistema.',
+      toast.success('Usuário atualizado com sucesso!', {
+        description: 'O usuário foi atualizado e pode fazer login no sistema.',
       })
 
       onSubmit?.({
@@ -175,8 +147,6 @@ export function RegisterUserForm({ onSubmit }: RegisterUserFormProps) {
         state,
         city,
         permission,
-        password,
-        confirmPassword: password, // confirmPassword is not used in the action
       })
 
       form.reset()
@@ -191,7 +161,7 @@ export function RegisterUserForm({ onSubmit }: RegisterUserFormProps) {
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(handleRegisterUser)}
+        onSubmit={form.handleSubmit(handleUpdateUser)}
         className="space-y-6 @container"
       >
         <div className="grid grid-cols-1 @md:grid-cols-2 gap-6">
@@ -307,88 +277,22 @@ export function RegisterUserForm({ onSubmit }: RegisterUserFormProps) {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem className={cn(!password && 'md:col-span-2')}>
-                <FormLabel>Senha</FormLabel>
-                <FormControl>
-                  <PasswordField
-                    placeholder="••••••••"
-                    disabled={form.formState.isSubmitting}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {password && (
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirme sua senha</FormLabel>
-                  <FormControl>
-                    <PasswordField
-                      placeholder="••••••••"
-                      disabled={form.formState.isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-        </div>
-
-        {password && (
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Requisitos da senha:</Label>
-            <div className="space-y-1">
-              {passwordRequirements.map((req, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <div
-                    className={cn(
-                      'w-2 h-2 rounded-full',
-                      req.met ? 'bg-green-500' : 'bg-gray-300',
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      'text-xs',
-                      req.met ? 'text-green-600' : 'text-gray-500',
-                    )}
-                  >
-                    {req.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         <div className="flex gap-4 pt-4">
           <Button
             type="button"
             variant="outline"
             className="flex-1"
             disabled={form.formState.isSubmitting}
-            onClick={() => form.reset()}
+            onClick={() => router.back()}
           >
-            Limpar formulário
+            Voltar
           </Button>
           <Button
             type="submit"
             className="flex-1"
             isLoading={form.formState.isSubmitting}
           >
-            Cadastrar usuário <ArrowRight className="size-4" />
+            Atualizar usuário <ArrowRight className="size-4" />
           </Button>
         </div>
       </form>

@@ -6,12 +6,14 @@ type ListHeaderSectionProps = {
   totalUsers: number
   onlineUsers: number
   workingUsers: number
+  onDeleteSelected?: () => void
 }
 
 export function ListHeaderSection({
   totalUsers = 0,
   onlineUsers = 0,
   workingUsers = 0,
+  onDeleteSelected,
 }: ListHeaderSectionProps) {
   return (
     <CardHeader className="p-0">
@@ -24,7 +26,12 @@ export function ListHeaderSection({
           </CardDescription>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="destructive" size="sm" className="">
+          <Button
+            onClick={onDeleteSelected}
+            variant="destructive"
+            size="sm"
+            className=""
+          >
             <Trash2 className="size-4" />
             Excluir Selecionados
           </Button>

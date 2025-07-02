@@ -1,3 +1,4 @@
+import { useRouter } from '@bprogress/next'
 import type { User, UserSituation } from '@promo/@types/firebase'
 import { deleteUserAction } from '@promo/actions/delete-user'
 import { toggleUserSituationAction } from '@promo/actions/toggle-user-situation'
@@ -46,11 +47,19 @@ import { useServerAction } from 'zsa-react'
 
 type ListTableRowProps = {
   data: User
+  onSelectedRow?: (checked: boolean, userId: string) => void
+  isSelected?: boolean
 }
 
-export function ListTableRow({ data: user }: ListTableRowProps) {
+export function ListTableRow({
+  data: user,
+  isSelected,
+  onSelectedRow,
+}: ListTableRowProps) {
   const { execute } = useServerAction(toggleUserSituationAction)
   const { execute: deleteUser } = useServerAction(deleteUserAction)
+
+  const router = useRouter()
 
   function getPermissionBadgeVariant(permission: 'Admin' | 'Freelancer') {
     return permission === 'Admin' ? 'default' : 'secondary'
@@ -179,7 +188,12 @@ export function ListTableRow({ data: user }: ListTableRowProps) {
   return (
     <TableRow className={cn(user.situation !== 'active' && 'opacity-50')}>
       <TableCell>
-        <Checkbox />
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={(checked) => {
+            onSelectedRow?.(checked !== 'indeterminate' && checked, user.id)
+          }}
+        />
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-3">
@@ -271,11 +285,15 @@ export function ListTableRow({ data: user }: ListTableRowProps) {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Ações</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => router.push(`/users/${user.id}/detail`)}
+              >
                 <Eye className="size-4 mr-2" />
                 Visualizar
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => router.push(`/users/${user.id}/edit`)}
+              >
                 <Edit3 className="size-4 mr-2" />
                 Editar
               </DropdownMenuItem>

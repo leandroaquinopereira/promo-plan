@@ -1,6 +1,8 @@
 'use client'
 
 import type { Role, User } from '@promo/@types/firebase'
+import { deleteUserBatchAction } from '@promo/actions/delete-user-batch'
+import { disableUserBatchAction } from '@promo/actions/disable-user-batch'
 import { Collections } from '@promo/collections'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { Card, CardContent } from '@promo/components/ui/card'
@@ -13,6 +15,7 @@ import {
 import { appConfiguration } from '@promo/constants/app-configuration'
 import { EventStatusEnum } from '@promo/enum/event-status'
 import { UserStatusEnum } from '@promo/enum/user-status'
+import { usersListEvents } from '@promo/events/users-list'
 import { firestore } from '@promo/lib/firebase/client'
 import { EMPTY_STRING } from '@promo/utils/generates-substrings-to-query-search'
 import { normalizeText } from '@promo/utils/normalize-text'
@@ -34,6 +37,8 @@ import {
 import { LoaderPinwheel, UserSearch } from 'lucide-react'
 import { parseAsInteger, useQueryState } from 'nuqs'
 import { useEffect, useRef, useState, useTransition } from 'react'
+import { toast } from 'sonner'
+import { useServerAction } from 'zsa-react'
 
 import { ListHeaderSection } from './list-header-section'
 import { ListPaginationSection } from './list-pagination-section'
@@ -41,6 +46,8 @@ import { ListTableHeader } from './list-table-header'
 import { ListTableRow } from './list-table-row'
 
 export function ListContent() {
+  const { execute } = useServerAction(deleteUserBatchAction)
+  const { execute: disableUserBatch } = useServerAction(disableUserBatchAction)
   const [isLoadingUsers, startTransition] = useTransition()
   const unsubscribeRef = useRef<Unsubscribe | null>(null)
 
@@ -76,6 +83,61 @@ export function ListContent() {
     total: 0,
     users: [],
   })
+
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set())
+
+  function handleSelectedRow(checked: boolean, userId: string) {
+    setSelectedRows((prevSelected) => {
+      if (checked) {
+        prevSelected.add(userId)
+      } else {
+        prevSelected.delete(userId)
+      }
+
+      return new Set(prevSelected)
+    })
+  }
+
+  function handleDeleteSelectedRows() {
+    try {
+      toast.promise(
+        execute({
+          users: Array.from(selectedRows),
+        }),
+        {
+          loading: 'Deletando usuários...',
+          success: (result) => {
+            if (!result || typeof result !== 'object') {
+              throw new Error('Resposta inválida do servidor')
+            }
+
+            if ('error' in result && result.error) {
+              throw new Error(
+                // @ts-expect-error ignore error type for now
+                result.error?.message || 'Erro ao deletar usuários',
+              )
+            }
+
+            if ('success' in result && !result.success) {
+              throw new Error('Falha ao deletar usuário')
+            }
+
+            setSelectedRows(new Set()) // Clear selected rows after disabling
+            return 'Usuários deletados com sucesso.'
+          },
+          error: (error) => {
+            if (error instanceof Error) {
+              return error.message
+            }
+
+            return 'Erro ao deletar usuários.'
+          },
+        },
+      )
+    } catch (error) {
+      console.error('Unexpected error:', error)
+    }
+  }
 
   useEffect(() => {
     async function setupRealtimeListener() {
@@ -274,6 +336,61 @@ export function ListContent() {
     }
   }, [])
 
+  useEffect(() => {
+    function handleDisableAllUsersSelected() {
+      try {
+        toast.promise(
+          disableUserBatch({
+            users: Array.from(selectedRows),
+          }),
+          {
+            loading: 'Deletando usuários...',
+            success: (result) => {
+              if (!result || typeof result !== 'object') {
+                throw new Error('Resposta inválida do servidor')
+              }
+
+              if ('error' in result && result.error) {
+                throw new Error(
+                  // @ts-expect-error ignore error type for now
+                  result.error?.message || 'Erro ao desabilitar usuários',
+                )
+              }
+
+              if ('success' in result && !result.success) {
+                throw new Error('Falha ao desabilitar usuário')
+              }
+
+              setSelectedRows(new Set()) // Clear selected rows after disabling
+              return 'Usuários desabilitados com sucesso.'
+            },
+            error: (error) => {
+              if (error instanceof Error) {
+                return error.message
+              }
+
+              return 'Erro ao desabilitar usuários.'
+            },
+          },
+        )
+      } catch (error) {
+        console.error('Unexpected error:', error)
+      }
+    }
+
+    window.addEventListener(
+      usersListEvents.disableAllEvents,
+      handleDisableAllUsersSelected,
+    )
+
+    return () => {
+      window.removeEventListener(
+        usersListEvents.disableAllEvents,
+        handleDisableAllUsersSelected,
+      )
+    }
+  }, [disableUserBatch, selectedRows])
+
   return (
     <MotionDiv
       initial={{ opacity: 0, y: 20 }}
@@ -285,14 +402,35 @@ export function ListContent() {
           totalUsers={response?.total || 0}
           onlineUsers={0}
           workingUsers={0}
+          onDeleteSelected={handleDeleteSelectedRows}
         />
         <CardContent className="p-0 m-0">
           <Table>
-            <ListTableHeader />
+            <ListTableHeader
+              isAllSelected={
+                response.users.length > 0 &&
+                response.users.length === selectedRows.size
+              }
+              onSelectedAllRows={(checked) => {
+                if (checked) {
+                  const allUserIds = new Set(
+                    response.users.map((user) => user.id),
+                  )
+                  setSelectedRows(allUserIds)
+                } else {
+                  setSelectedRows(new Set())
+                }
+              }}
+            />
             <TableBody>
               {!isLoadingUsers &&
                 response?.users.map((user) => (
-                  <ListTableRow data={user} key={user.id} />
+                  <ListTableRow
+                    onSelectedRow={handleSelectedRow}
+                    isSelected={selectedRows.has(user.id)}
+                    data={user}
+                    key={user.id}
+                  />
                 ))}
 
               {!isLoadingUsers && response.total === 0 && (
