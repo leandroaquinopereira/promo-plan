@@ -3,14 +3,11 @@
 import { Collections } from '@promo/collections'
 import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
 import { UserSituationEnum } from '@promo/enum/user-situation'
-import { getFirebaseApps } from '@promo/lib/firebase/server'
-import { auth } from '@promo/lib/next-auth/auth'
 import { serverActionOutputSchema } from '@promo/schemas/server-action-output'
 import { hashPassword } from '@promo/utils/crypto'
 import { generateSubstrings } from '@promo/utils/generates-substrings-to-query-search'
 import { firestore } from 'firebase-admin'
 import { z } from 'zod'
-import { createServerAction } from 'zsa'
 
 import { authProcedure } from './procedures/auth-procedure'
 
@@ -23,8 +20,8 @@ export const createUserAction = authProcedure
       state: z.string().min(2, 'Estado é obrigatório'),
       city: z.string().min(1, 'Cidade é obrigatória'),
       phone: z.string().min(10, 'Telefone deve ter pelo menos 10 dígitos'),
-      permission: z.enum(['admin', 'freelancer'], {
-        errorMap: () => ({ message: 'Permissão inválida' }),
+      permission: z.string({
+        required_error: 'Permissão é obrigatória',
       }),
     }),
   )

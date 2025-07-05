@@ -408,8 +408,6 @@ export function ListContent() {
       <Card className="p-4">
         <ListHeaderSection
           totalUsers={response?.total || 0}
-          onlineUsers={0}
-          workingUsers={0}
           onDeleteSelected={handleDeleteSelectedRows}
         />
         <CardContent className="p-0 m-0">

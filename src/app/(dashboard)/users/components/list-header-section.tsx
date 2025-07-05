@@ -4,15 +4,11 @@ import { Trash2 } from 'lucide-react'
 
 type ListHeaderSectionProps = {
   totalUsers: number
-  onlineUsers: number
-  workingUsers: number
   onDeleteSelected?: () => void
 }
 
 export function ListHeaderSection({
   totalUsers = 0,
-  onlineUsers = 0,
-  workingUsers = 0,
   onDeleteSelected,
 }: ListHeaderSectionProps) {
   return (
@@ -20,10 +16,7 @@ export function ListHeaderSection({
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h3>Lista de Usuários</h3>
-          <CardDescription>
-            {totalUsers} usuários cadastrados • {onlineUsers} online •{' '}
-            {workingUsers} trabalhando
-          </CardDescription>
+          <CardDescription>{totalUsers} usuários cadastrados</CardDescription>
         </div>
         <div className="flex items-center gap-2">
           <Button

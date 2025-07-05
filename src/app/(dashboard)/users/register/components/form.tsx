@@ -56,9 +56,8 @@ const schema = z
       })
       .min(2, 'Cidade deve ter pelo menos 2 caracteres')
       .max(100, 'Cidade deve ter no máximo 100 caracteres'),
-    permission: z.enum(['freelancer', 'admin'], {
+    permission: z.string({
       required_error: 'Permissão é obrigatória',
-      invalid_type_error: 'Selecione uma permissão válida',
     }),
     password: z
       .string({
@@ -119,7 +118,7 @@ export function RegisterUserForm({ onSubmit }: RegisterUserFormProps) {
         phone,
         state,
         city,
-        permission,
+        permission: permission as 'admin' | 'freelancer',
         password,
       })
 

@@ -4,12 +4,14 @@ import { formatPhoneNumber } from '@promo/utils/format-phone-number'
 import { formatUsername } from '@promo/utils/format-username'
 import {
   BookOpen,
+  Building,
   ChevronsUpDown,
   Command,
   Home,
   Settings,
   User,
   Users,
+  Utensils,
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -37,24 +39,6 @@ import {
   SidebarRail,
 } from './ui/sidebar'
 import { Muted, P } from './ui/typography'
-
-const navMain = [
-  {
-    title: 'Dashboard',
-    url: '/',
-    icon: Home,
-  },
-  {
-    title: 'Guias',
-    url: '/guides',
-    icon: BookOpen,
-  },
-  {
-    title: 'Usuários',
-    url: '/users',
-    icon: Users,
-  },
-]
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user?: {
@@ -91,22 +75,76 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navMain.map((item) => {
-                const isActive =
-                  pathname === item.url ||
-                  (item.url !== '/' && pathname.startsWith(item.url))
-
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive}>
-                      <Link href={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
+              <SidebarMenuItem key="dashboard">
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === '/' && pathname.startsWith('/')}
+                >
+                  <Link href="/">
+                    <Home />
+                    <span>Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem key="guides">
+                <SidebarMenuButton
+                  asChild
+                  isActive={
+                    (pathname === '/guides' ||
+                      pathname.startsWith('/guides')) &&
+                    pathname !== '/'
+                  }
+                >
+                  <Link href="/guides">
+                    <BookOpen />
+                    <span>Guias</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem key="tastings">
+                <SidebarMenuButton
+                  asChild
+                  isActive={
+                    (pathname === '/tastings' ||
+                      pathname.startsWith('/tastings')) &&
+                    pathname !== '/'
+                  }
+                >
+                  <Link href="/tastings">
+                    <Utensils />
+                    <span>Degustações</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem key="companies">
+                <SidebarMenuButton
+                  asChild
+                  isActive={
+                    (pathname === '/companies' ||
+                      pathname.startsWith('/companies')) &&
+                    pathname !== '/'
+                  }
+                >
+                  <Link href="/companies">
+                    <Building />
+                    <span>Empresas</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem key="users">
+                <SidebarMenuButton
+                  asChild
+                  isActive={
+                    (pathname === '/users' || pathname.startsWith('/users')) &&
+                    pathname !== '/'
+                  }
+                >
+                  <Link href="/users">
+                    <Users />
+                    <span>Usuários</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
