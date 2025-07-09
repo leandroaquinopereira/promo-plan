@@ -5,5 +5,7 @@ export const tastingStatusMap: Record<TastingStatus, string> = {
   active: 'Ativo',
   completed: 'Concluído',
   cancelled: 'Cancelado',
-  postponed: 'Adiado',
+  deleted: 'Excluído',
+  todo: 'A fazer',
+  in_progress: 'Em andamento',
 }

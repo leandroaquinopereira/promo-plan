@@ -4,6 +4,7 @@ import { useRouter } from '@bprogress/next'
 import type { Tasting, TastingStatus } from '@promo/@types/firebase'
 import { changeTastingStatusAction } from '@promo/actions/change-tasting-status'
 import { deleteTastingAction } from '@promo/actions/delete-tasting'
+import { TastingLogsSheet } from '@promo/components/tasting-logs-sheet'
 import {
   Avatar,
   AvatarFallback,
@@ -46,6 +47,7 @@ import {
   CheckIcon,
   Edit3,
   Eye,
+  History,
   MapPin,
   MoreHorizontal,
   Package,
@@ -53,7 +55,7 @@ import {
   Play,
   Trash2,
 } from 'lucide-react'
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { toast } from 'sonner'
 import { useServerAction } from 'zsa-react'
 
@@ -68,6 +70,8 @@ export function ListTableRow({
   isSelected,
   onSelectedRow,
 }: ListTableRowProps) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+
   const { execute: deleteTasting } = useServerAction(deleteTastingAction)
   const { execute: changeTastingStatus } = useServerAction(
     changeTastingStatusAction,
@@ -465,7 +469,7 @@ export function ListTableRow({
         </Tooltip>
       </TableCell>
       <TableCell>
-        <DropdownMenu>
+        <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm">
               <MoreHorizontal className="size-4" />
@@ -482,6 +486,19 @@ export function ListTableRow({
               <Edit3 className="size-4 mr-2" />
               Editar
             </DropdownMenuItem>
+            <TastingLogsSheet
+              tastingId={tasting.id.toString()}
+              onClose={() => setIsDropdownOpen(false)}
+            >
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault()
+                }}
+              >
+                <History className="size-4 mr-2" />
+                Ver logs
+              </DropdownMenuItem>
+            </TastingLogsSheet>
             {tasting.status !==
               (TastingStatusEnum.IN_PROGRESS as TastingStatus) && (
               <DropdownMenuItem onClick={handleStartTasting}>
