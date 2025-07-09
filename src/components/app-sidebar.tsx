@@ -8,6 +8,7 @@ import {
   ChevronsUpDown,
   Command,
   Home,
+  Package,
   Settings,
   User,
   Users,
@@ -128,6 +129,21 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                   <Link href="/companies">
                     <Building />
                     <span>Empresas</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem key="products">
+                <SidebarMenuButton
+                  asChild
+                  isActive={
+                    (pathname === '/products' ||
+                      pathname.startsWith('/products')) &&
+                    pathname !== '/'
+                  }
+                >
+                  <Link href="/products">
+                    <Package />
+                    <span>Produtos</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

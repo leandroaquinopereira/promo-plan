@@ -1,0 +1,16 @@
+import { RegisterProductForm } from './components/form'
+
+export default async function RegisterProductPage() {
+  return (
+    <div className="container mx-auto max-w-2xl py-8">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold">Cadastrar Produto</h1>
+        <p className="text-muted-foreground">
+          Preencha os dados abaixo para criar um novo produto no sistema.
+        </p>
+      </div>
+
+      <RegisterProductForm />
+    </div>
+  )
+}

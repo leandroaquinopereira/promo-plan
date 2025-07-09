@@ -189,6 +189,7 @@ export function ListTableRow({
     <TableRow className={cn(user.situation !== 'active' && 'opacity-50')}>
       <TableCell>
         <Checkbox
+          className="ml-2 mb-3"
           checked={isSelected}
           onCheckedChange={(checked) => {
             onSelectedRow?.(checked !== 'indeterminate' && checked, user.id)

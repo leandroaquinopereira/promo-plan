@@ -64,39 +64,6 @@ export interface User {
   status: UserStatus
 }
 
-export type TastingStatus =
-  | 'draft'
-  | 'active'
-  | 'completed'
-  | 'cancelled'
-  | 'postponed'
-
-export interface Tasting {
-  id: string
-  processId: number
-  promoterId: string
-  promoter: User | firestore.DocumentReference
-  startDate: firestore.Timestamp
-  endDate: firestore.Timestamp
-  company: string
-  city: string
-  state: string
-  products: string[]
-  notes: string
-  status: TastingStatus
-  createdAt: firestore.Timestamp
-  updatedAt: firestore.Timestamp
-  createdBy: string
-  updatedBy: string
-  evidences?: {
-    id: string
-    name: string
-    url: string
-    type: 'image' | 'document' | 'video'
-    uploadedAt: firestore.Timestamp
-  }[]
-}
-
 export type CompanyStatus = 'active' | 'inactive'
 
 export interface Company {
@@ -107,4 +74,51 @@ export interface Company {
   updatedAt: firestore.Timestamp
   createdBy: string
   updatedBy: string
+}
+
+export type ProductStatus = 'active' | 'inactive' | 'deleted'
+
+export interface Product {
+  id: string
+  name: string
+  description: string
+  status: ProductStatus
+  createdAt: firestore.Timestamp
+  updatedAt: firestore.Timestamp
+  createdBy: string
+  updatedBy: string
+}
+
+export type TastingStatus =
+  | 'draft'
+  | 'active'
+  | 'completed'
+  | 'cancelled'
+  | 'deleted'
+  | 'todo'
+  | 'in_progress'
+
+export type ProductTasting = Product | firestore.DocumentReference
+
+export interface Tasting {
+  id: number
+  promoter: User | firestore.DocumentReference
+  startDate: firestore.Timestamp
+  endDate: firestore.Timestamp
+  company: Company | firestore.DocumentReference
+  products: ProductTasting[]
+  notes?: string
+  status: TastingStatus
+  createdAt: firestore.Timestamp
+  updatedAt: firestore.Timestamp
+  createdBy: string
+  updatedBy: string
+}
+
+export interface TastingLog {
+  id: string
+  tasting: Tasting | firestore.DocumentReference
+  status: TastingStatus
+  createdAt: firestore.Timestamp
+  createdBy: string
 }

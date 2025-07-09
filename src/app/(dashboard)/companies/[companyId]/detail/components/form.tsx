@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@promo/components/ui/select'
 import { CompanyStatusEnum } from '@promo/enum/company-status'
+import { ArrowRight } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -51,7 +52,7 @@ export function DetailCompanyForm({ company }: DetailCompanyFormProps) {
     resolver: zodResolver(schema),
     defaultValues: {
       name: company.name,
-      status: company.status as CompanyStatusEnum,
+      status: company.status as any,
     },
     disabled: true,
   })
@@ -125,6 +126,7 @@ export function DetailCompanyForm({ company }: DetailCompanyFormProps) {
             onClick={() => router.push(`/companies/${company.id}/edit`)}
           >
             Editar
+            <ArrowRight className="size-4" />
           </Button>
         </div>
       </form>

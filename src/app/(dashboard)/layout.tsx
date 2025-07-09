@@ -15,12 +15,10 @@ import { auth } from '@promo/lib/next-auth/auth'
 
 type DashboardLayoutProps = {
   children: React.ReactNode
-  sheet: React.ReactNode
 }
 
 export default async function DashboardLayout({
   children,
-  sheet,
 }: DashboardLayoutProps) {
   const responseAuth = await auth()
 
@@ -52,7 +50,6 @@ export default async function DashboardLayout({
                 <main className="flex min-h-[calc(100vh-theme(spacing.16))] flex-col">
                   {children}
 
-                  {sheet}
                   <Muted className="text-center w-full mt-auto pt-8 pb-2">
                     &copy; {new Date().getFullYear()} Promo Plan. Todos os
                     direitos reservados.

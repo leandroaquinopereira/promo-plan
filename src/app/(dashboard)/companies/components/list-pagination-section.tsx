@@ -3,6 +3,7 @@
 import { Button } from '@promo/components/ui/button'
 import { CardFooter } from '@promo/components/ui/card'
 import { appConfiguration } from '@promo/constants/app-configuration'
+import { getTotalOfPages } from '@promo/utils/get-total-of-pages'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { parseAsInteger, useQueryState } from 'nuqs'
 
@@ -22,7 +23,7 @@ export function ListPaginationSection({
     parseAsInteger.withDefault(1),
   )
 
-  const totalPages = Math.ceil(totalCompanies / itemsPerPage)
+  const totalPages = getTotalOfPages(totalCompanies, itemsPerPage)
   const hasPreviousPage = currentPage > 1
   const hasNextPage = currentPage < totalPages
 

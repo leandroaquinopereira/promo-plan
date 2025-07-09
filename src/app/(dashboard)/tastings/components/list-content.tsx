@@ -1,7 +1,10 @@
 'use client'
 
-import type { Tasting } from '@promo/@types/firebase'
+import type { PaginatedResponse } from '@promo/@types/common'
+import type { Company, Product, Tasting, User } from '@promo/@types/firebase'
+import { Collections } from '@promo/collections'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
+import { TableSkeleton } from '@promo/components/table-skeleton'
 import { Card, CardContent } from '@promo/components/ui/card'
 import {
   Table,
@@ -9,211 +12,37 @@ import {
   TableCell,
   TableRow,
 } from '@promo/components/ui/table'
-import { LoaderPinwheel, Wine } from 'lucide-react'
+import { TastingStatusEnum } from '@promo/enum/tasting-status'
+import { firestore } from '@promo/lib/firebase/client'
+import { convertFirebaseDate } from '@promo/utils/date-helpers'
+import {
+  and,
+  collection,
+  doc,
+  getCountFromServer,
+  getDoc,
+  onSnapshot,
+  query,
+  type QueryFilterConstraint,
+  Timestamp,
+  type Unsubscribe,
+  where,
+} from 'firebase/firestore'
+import { Utensils, Wine } from 'lucide-react'
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { ListPaginationSection } from './list-pagination-section'
 import { ListTableHeader } from './list-table-header'
 import { ListTableRow } from './list-table-row'
 
-// Mock data para demonstração
-const mockTastings: Tasting[] = [
-  {
-    id: '1',
-    processId: 2024001,
-    promoterId: 'promoter-1',
-    promoter: {
-      id: 'promoter-1',
-      name: 'Maria Silva',
-      phone: '11987654321',
-      email: 'maria@example.com',
-      password: '',
-      role: {} as any,
-      active: true,
-      state: 'SP',
-      city: 'São Paulo',
-      createdAt: new Date() as any,
-      updatedAt: new Date() as any,
-      createdBy: '',
-      updatedBy: '',
-      lastLoggedAt: new Date() as any,
-      situation: 'active',
-      status: 'online',
-    },
-    startDate: new Date('2024-01-15') as any,
-    endDate: new Date('2024-01-20') as any,
-    company: 'Supermercado ABC',
-    city: 'São Paulo',
-    state: 'SP',
-    products: ['Refrigerante Cola', 'Suco de Laranja', 'Água Mineral'],
-    notes: 'Degustação na seção de bebidas',
-    status: 'active',
-    createdAt: new Date('2024-01-10') as any,
-    updatedAt: new Date('2024-01-10') as any,
-    createdBy: 'admin',
-    updatedBy: 'admin',
-    evidences: [],
-  },
-  {
-    id: '2',
-    processId: 2024002,
-    promoterId: 'promoter-2',
-    promoter: {
-      id: 'promoter-2',
-      name: 'João Santos',
-      phone: '11987654322',
-      email: 'joao@example.com',
-      password: '',
-      role: {} as any,
-      active: true,
-      state: 'RJ',
-      city: 'Rio de Janeiro',
-      createdAt: new Date() as any,
-      updatedAt: new Date() as any,
-      createdBy: '',
-      updatedBy: '',
-      lastLoggedAt: new Date() as any,
-      situation: 'active',
-      status: 'working',
-    },
-    startDate: new Date('2024-01-22') as any,
-    endDate: new Date('2024-01-25') as any,
-    company: 'Hipermercado XYZ',
-    city: 'Rio de Janeiro',
-    state: 'RJ',
-    products: ['Biscoito Recheado', 'Chocolate', 'Bala'],
-    notes: 'Degustação na seção de doces',
-    status: 'completed',
-    createdAt: new Date('2024-01-18') as any,
-    updatedAt: new Date('2024-01-26') as any,
-    createdBy: 'admin',
-    updatedBy: 'admin',
-    evidences: [
-      {
-        id: 'evidence-1',
-        name: 'Foto da degustação',
-        url: 'https://example.com/photo.jpg',
-        type: 'image',
-        uploadedAt: new Date() as any,
-      },
-    ],
-  },
-  {
-    id: '3',
-    processId: 2024003,
-    promoterId: 'promoter-3',
-    promoter: {
-      id: 'promoter-3',
-      name: 'Ana Costa',
-      phone: '11987654323',
-      email: 'ana@example.com',
-      password: '',
-      role: {} as any,
-      active: true,
-      state: 'MG',
-      city: 'Belo Horizonte',
-      createdAt: new Date() as any,
-      updatedAt: new Date() as any,
-      createdBy: '',
-      updatedBy: '',
-      lastLoggedAt: new Date() as any,
-      situation: 'active',
-      status: 'offline',
-    },
-    startDate: new Date('2024-02-01') as any,
-    endDate: new Date('2024-02-05') as any,
-    company: 'Mercado Central',
-    city: 'Belo Horizonte',
-    state: 'MG',
-    products: ['Café Premium', 'Açúcar Cristal'],
-    notes: 'Degustação no corredor principal',
-    status: 'draft',
-    createdAt: new Date('2024-01-28') as any,
-    updatedAt: new Date('2024-01-28') as any,
-    createdBy: 'admin',
-    updatedBy: 'admin',
-    evidences: [],
-  },
-  {
-    id: '4',
-    processId: 2024004,
-    promoterId: 'promoter-4',
-    promoter: {
-      id: 'promoter-4',
-      name: 'Carlos Oliveira',
-      phone: '11987654324',
-      email: 'carlos@example.com',
-      password: '',
-      role: {} as any,
-      active: true,
-      state: 'RS',
-      city: 'Porto Alegre',
-      createdAt: new Date() as any,
-      updatedAt: new Date() as any,
-      createdBy: '',
-      updatedBy: '',
-      lastLoggedAt: new Date() as any,
-      situation: 'active',
-      status: 'online',
-    },
-    startDate: new Date('2024-02-10') as any,
-    endDate: new Date('2024-02-12') as any,
-    company: 'Loja de Conveniência',
-    city: 'Porto Alegre',
-    state: 'RS',
-    products: ['Energia Drink', 'Isotônico'],
-    notes: 'Degustação próxima ao caixa',
-    status: 'cancelled',
-    createdAt: new Date('2024-02-05') as any,
-    updatedAt: new Date('2024-02-08') as any,
-    createdBy: 'admin',
-    updatedBy: 'admin',
-    evidences: [],
-  },
-  {
-    id: '5',
-    processId: 2024005,
-    promoterId: 'promoter-5',
-    promoter: {
-      id: 'promoter-5',
-      name: 'Fernanda Lima',
-      phone: '11987654325',
-      email: 'fernanda@example.com',
-      password: '',
-      role: {} as any,
-      active: true,
-      state: 'BA',
-      city: 'Salvador',
-      createdAt: new Date() as any,
-      updatedAt: new Date() as any,
-      createdBy: '',
-      updatedBy: '',
-      lastLoggedAt: new Date() as any,
-      situation: 'active',
-      status: 'working',
-    },
-    startDate: new Date('2024-02-15') as any,
-    endDate: new Date('2024-02-18') as any,
-    company: 'Shopping Center',
-    city: 'Salvador',
-    state: 'BA',
-    products: ['Iogurte Natural', 'Queijo Coalho'],
-    notes: 'Degustação na praça de alimentação',
-    status: 'postponed',
-    createdAt: new Date('2024-02-10') as any,
-    updatedAt: new Date('2024-02-13') as any,
-    createdBy: 'admin',
-    updatedBy: 'admin',
-    evidences: [],
-  },
-]
-
 export function ListContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set())
-  const [filteredTastings, setFilteredTastings] =
-    useState<Tasting[]>(mockTastings)
+  const [response, setResponse] = useState<PaginatedResponse<Tasting>>({
+    data: [],
+    total: 0,
+  })
 
   // Query states for filters
   const [search] = useQueryState('search', parseAsString.withDefault(''))
@@ -222,73 +51,230 @@ export function ListContent() {
   const [state] = useQueryState('state', parseAsString.withDefault('all'))
   const [city] = useQueryState('city', parseAsString.withDefault(''))
   const [status] = useQueryState('status', parseAsString.withDefault('all'))
+
+  const [startDate] = useQueryState('startDate', parseAsString.withDefault(''))
+  const [endDate] = useQueryState('endDate', parseAsString.withDefault(''))
+
   const [currentPage] = useQueryState(
     'current-page',
     parseAsInteger.withDefault(1),
   )
 
-  // Simulate loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [])
+  const unsubscribeRef = useRef<Unsubscribe | null>(null)
 
   // Filter tastings based on query parameters
   useEffect(() => {
-    let filtered = mockTastings
+    async function setup() {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+        unsubscribeRef.current = null
+      }
 
-    // Apply search filter
-    if (search) {
-      filtered = filtered.filter(
-        (tasting) =>
-          tasting.company.toLowerCase().includes(search.toLowerCase()) ||
-          (typeof tasting.promoter === 'object' &&
-            tasting.promoter.name
-              .toLowerCase()
-              .includes(search.toLowerCase())) ||
-          tasting.city.toLowerCase().includes(search.toLowerCase()) ||
-          tasting.products.some((product) =>
-            product.toLowerCase().includes(search.toLowerCase()),
+      const coll = collection(firestore, Collections.TASTINGS)
+      const constraints: QueryFilterConstraint[] = []
+
+      if (status !== 'all') {
+        constraints.push(where('status', '==', status))
+      }
+
+      if (processId) {
+        constraints.push(where('row', '==', parseInt(processId)))
+      }
+
+      if (startDate && endDate) {
+        try {
+          const startDateParsed = startDate ? new Date(startDate) : null
+          const endDateParsed = endDate ? new Date(endDate) : null
+
+          if (startDateParsed && endDateParsed) {
+            constraints.push(
+              where('startDate', '>=', Timestamp.fromDate(startDateParsed)),
+            )
+            constraints.push(
+              where('endDate', '<=', Timestamp.fromDate(endDateParsed)),
+            )
+          }
+        } finally {
+        }
+      }
+
+      if (company) {
+        constraints.push(
+          where(
+            'company',
+            '==',
+            doc(collection(firestore, Collections.COMPANIES), company),
           ),
+        )
+      }
+
+      const q = query(
+        coll,
+        and(where('status', '!=', TastingStatusEnum.DELETED), ...constraints),
+      )
+
+      const countQuery = query(
+        coll,
+        and(where('status', '!=', TastingStatusEnum.DELETED), ...constraints),
+      )
+
+      unsubscribeRef.current = onSnapshot(
+        q,
+        async (snapshot) => {
+          try {
+            const total = await getCountFromServer(countQuery)
+
+            const tastings: Tasting[] = []
+
+            const promoterColl = collection(firestore, Collections.USERS)
+            const companyColl = collection(firestore, Collections.COMPANIES)
+            const productColl = collection(firestore, Collections.PRODUCTS)
+
+            const promoterCaching = new Map<string, User>()
+            const companyCaching = new Map<string, Company>()
+            const productCaching = new Map<string, Product>()
+
+            for await (const snap of snapshot.docs) {
+              const tasting: Tasting = {
+                id: snap.id,
+                ...snap.data(),
+              } as unknown as Tasting
+
+              // getting role reference and fetching role data
+              const promoterRefStr = tasting.promoter
+              const promoterId =
+                typeof promoterRefStr === 'string'
+                  ? String(promoterRefStr).replace('/users/', '')
+                  : promoterRefStr.id
+
+              let promoter: User | undefined = promoterCaching.get(promoterId)
+              if (!promoter) {
+                // if not cached, fetch from Firestore
+                const promoterDoc = await getDoc(doc(promoterColl, promoterId))
+                if (promoterDoc.exists()) {
+                  promoter = {
+                    id: promoterDoc.id,
+                    ...promoterDoc.data(),
+                  } as User
+
+                  promoterCaching.set(promoterId, promoter)
+                }
+              }
+
+              if (state !== 'all') {
+                const promoterState = promoter?.state
+                if (
+                  !promoterState
+                    ?.toLocaleLowerCase()
+                    .includes(state.toLocaleLowerCase())
+                ) {
+                  continue
+                }
+              }
+
+              if (city) {
+                const promoterCity = promoter?.city
+                if (
+                  !promoterCity
+                    ?.toLocaleLowerCase()
+                    .includes(city.toLocaleLowerCase())
+                ) {
+                  continue
+                }
+              }
+
+              tasting.promoter = promoter
+
+              const companyRefStr = tasting.company
+              const companyId =
+                typeof companyRefStr === 'string'
+                  ? String(companyRefStr).replace('/companies/', '')
+                  : companyRefStr.id
+
+              let company: Company | undefined = companyCaching.get(companyId)
+              if (!company) {
+                // if not cached, fetch from Firestore
+                const companyDoc = await getDoc(doc(companyColl, companyId))
+                if (companyDoc.exists()) {
+                  company = {
+                    id: companyDoc.id,
+                    ...companyDoc.data(),
+                  } as Company
+
+                  companyCaching.set(companyId, company)
+                }
+              }
+
+              tasting.company = company
+
+              const productsRefStrs = tasting.products
+              const products: Product[] = []
+              for (const productRefStr of productsRefStrs) {
+                const productId =
+                  typeof productRefStr === 'string'
+                    ? String(productRefStr).replace('/products/', '')
+                    : productRefStr.id
+
+                let product: Product | undefined = productCaching.get(productId)
+                if (!product) {
+                  const productDoc = await getDoc(doc(productColl, productId))
+                  if (productDoc.exists()) {
+                    product = {
+                      id: productDoc.id,
+                      ...productDoc.data(),
+                    } as Product
+
+                    productCaching.set(productId, product)
+                    products.push(product)
+                  }
+                }
+              }
+
+              tasting.products = products
+              tasting.createdAt = convertFirebaseDate(tasting.createdAt)
+              tasting.startDate = convertFirebaseDate(tasting.startDate)
+              tasting.endDate = convertFirebaseDate(tasting.endDate)
+              tasting.updatedAt = convertFirebaseDate(tasting.updatedAt)
+
+              tastings.push(tasting)
+            }
+
+            setResponse({
+              data: tastings,
+              total: total.data().count || 0,
+            })
+
+            setIsLoading(false)
+          } catch (error) {
+            setResponse({
+              data: [],
+              total: 0,
+            })
+
+            setIsLoading(false)
+          }
+        },
+        (error) => {
+          console.error('Error fetching tastings: ', error)
+          setResponse({
+            data: [],
+            total: 0,
+          })
+
+          setIsLoading(false)
+        },
       )
     }
 
-    // Apply process ID filter
-    if (processId) {
-      filtered = filtered.filter((tasting) =>
-        tasting.processId.toString().includes(processId),
-      )
-    }
+    setup()
 
-    // Apply company filter
-    if (company) {
-      filtered = filtered.filter((tasting) =>
-        tasting.company.toLowerCase().includes(company.toLowerCase()),
-      )
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+        unsubscribeRef.current = null
+      }
     }
-
-    // Apply state filter
-    if (state && state !== 'all') {
-      filtered = filtered.filter((tasting) => tasting.state === state)
-    }
-
-    // Apply city filter
-    if (city) {
-      filtered = filtered.filter((tasting) =>
-        tasting.city.toLowerCase().includes(city.toLowerCase()),
-      )
-    }
-
-    // Apply status filter
-    if (status && status !== 'all') {
-      filtered = filtered.filter((tasting) => tasting.status === status)
-    }
-
-    setFilteredTastings(filtered)
-  }, [search, processId, company, state, city, status])
+  }, [processId, company, status, startDate, endDate, state, city])
 
   function handleSelectedRow(checked: boolean, tastingId: string) {
     setSelectedRows((prevSelected) => {
@@ -304,20 +290,13 @@ export function ListContent() {
 
   function handleSelectedAllRows(checked: boolean) {
     if (checked) {
-      setSelectedRows(new Set(filteredTastings.map((tasting) => tasting.id)))
+      setSelectedRows(
+        new Set(response.data.map((tasting) => tasting.id.toString())),
+      )
     } else {
       setSelectedRows(new Set())
     }
   }
-
-  const isAllSelected =
-    filteredTastings.length > 0 && selectedRows.size === filteredTastings.length
-
-  // Pagination
-  const itemsPerPage = 10
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const paginatedTastings = filteredTastings.slice(startIndex, endIndex)
 
   return (
     <MotionDiv
@@ -325,31 +304,34 @@ export function ListContent() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
     >
-      <Card>
+      <Card className="px-4">
         <CardContent className="p-0">
           <Table>
             <ListTableHeader
-              isAllSelected={isAllSelected}
+              isAllSelected={
+                selectedRows.size > 0 &&
+                selectedRows.size === response.data.length
+              }
               onSelectedAllRows={handleSelectedAllRows}
             />
             <TableBody>
               {!isLoading &&
-                paginatedTastings.map((tasting) => (
+                response.data.map((tasting) => (
                   <ListTableRow
                     key={tasting.id}
                     data={tasting}
-                    isSelected={selectedRows.has(tasting.id)}
+                    isSelected={selectedRows.has(tasting.id.toString())}
                     onSelectedRow={handleSelectedRow}
                   />
                 ))}
 
-              {!isLoading && filteredTastings.length === 0 && (
+              {!isLoading && response.data.length === 0 && (
                 <TableRow>
                   <TableCell
                     colSpan={10}
                     className="text-center text-muted-foreground p-20"
                   >
-                    <Wine className="mx-auto mb-4 size-12 text-muted-foreground" />
+                    <Utensils className="mx-auto mb-4 size-12 text-muted-foreground" />
                     Nenhuma degustação encontrada.
                     <br />
                     Tente ajustar os filtros ou adicionar novas degustações.
@@ -357,26 +339,14 @@ export function ListContent() {
                 </TableRow>
               )}
 
-              {isLoading && (
-                <TableRow>
-                  <TableCell
-                    colSpan={10}
-                    className="text-center text-muted-foreground p-20"
-                  >
-                    <LoaderPinwheel className="mx-auto mb-4 size-8 text-muted-foreground animate-spin" />
-                    Carregando degustações...
-                    <br />
-                    Aguarde enquanto as degustações são carregadas.
-                  </TableCell>
-                </TableRow>
-              )}
+              {isLoading && <TableSkeleton quantity={8} />}
             </TableBody>
           </Table>
         </CardContent>
 
         <ListPaginationSection
-          totalTastings={filteredTastings.length}
-          totalTastingsShowing={paginatedTastings.length}
+          totalTastings={response.total || 0}
+          totalTastingsShowing={response.data.length || 0}
         />
       </Card>
     </MotionDiv>

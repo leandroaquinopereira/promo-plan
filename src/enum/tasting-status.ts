@@ -3,5 +3,8 @@ export enum TastingStatusEnum {
   ACTIVE = 'active',
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
-  POSTPONED = 'postponed',
+  DELETED = 'deleted',
+  TODO = 'todo',
+  IN_PROGRESS = 'in_progress',
+  PAUSED = 'paused',
 }

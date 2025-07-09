@@ -10,6 +10,12 @@ type UserListQueryParams = {
 }
 
 export class QueryKeys {
+  static get products() {
+    return {
+      multiselect: (query: string) => ['multiselect', 'products', query],
+    }
+  }
+
   static get users() {
     return {
       list: (params: UserListQueryParams) => {
@@ -35,6 +41,12 @@ export class QueryKeys {
           sortOrder,
         ]
       },
+      combobox: (query: string, entity: string) => [
+        'users',
+        'combobox',
+        query,
+        entity,
+      ],
     }
   }
 }

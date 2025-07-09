@@ -19,7 +19,7 @@ export async function HeaderSection() {
         </p>
       </div>
       <div className="gap-3 grid grid-cols-1 @xl:flex @xl:items-start">
-        <Link href="/tastings/create">
+        <Link href="/tastings/register">
           <Button className="w-full @lg:w-auto" variant="default">
             <Plus className="size-4" />
             Nova Degustação
