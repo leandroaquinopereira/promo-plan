@@ -33,3 +33,33 @@ export interface Guide {
   content?: string
   updatedAt: firestore.Timestamp
 }
+
+export type Role = {
+  id: string
+  name: string
+  slug: string
+  createdAt: firestore.Timestamp
+}
+
+export type UserSituation = 'active' | 'inactive' | 'deleted'
+export type UserStatus = 'online' | 'offline' | 'working'
+
+export interface User {
+  id: string
+  name: string
+  phone: string
+  password: string
+  email?: string
+  role: Role | firestore.DocumentReference
+  active: boolean
+  state: string
+  city: string
+  createdAt: firestore.Timestamp
+  updatedAt: firestore.Timestamp
+  createdBy: string
+  updatedBy: string
+  lastLoggedAt: firestore.Timestamp
+  avatar?: string
+  situation: UserSituation
+  status: UserStatus
+}

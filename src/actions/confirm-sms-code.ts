@@ -11,7 +11,10 @@ import { firestore } from 'firebase-admin'
 import { z } from 'zod'
 import { createServerAction } from 'zsa'
 
-export const confirmSMSCode = createServerAction()
+import { publicProcedure } from './procedures/public-procedure'
+
+export const confirmSMSCode = publicProcedure
+  .createServerAction()
   .input(
     z.object({
       codeId: z.string(),
@@ -19,18 +22,8 @@ export const confirmSMSCode = createServerAction()
       password: z.string(),
     }),
   )
-  .handler(async ({ input }) => {
-    const apps = getFirebaseApps()
-    if (!apps) {
-      return {
-        error: {
-          message: 'Firebase apps not initialized',
-          code: FirebaseErrorCode.FIREBASE_APPS_NOT_INITIALIZED,
-        },
-      }
-    }
-
-    const verificationCodeInFirebase = await apps.firestore
+  .handler(async ({ input, ctx }) => {
+    const verificationCodeInFirebase = await ctx.apps.firestore
       .collection(Collections.VERIFICATION_CODES)
       .doc(input.codeId)
       .get()
@@ -120,7 +113,7 @@ export const confirmSMSCode = createServerAction()
     })
 
     try {
-      const user = await apps.firestore
+      const user = await ctx.apps.firestore
         .collection(Collections.USERS)
         .doc(verificationCodeData.phone.replace('+55', ''))
         .get()

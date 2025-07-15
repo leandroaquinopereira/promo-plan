@@ -18,24 +18,19 @@ import { firestore } from 'firebase-admin'
 import { z } from 'zod'
 import { createServerAction } from 'zsa'
 
-export const sendSMSConfirmation = createServerAction()
+import { publicProcedure } from './procedures/public-procedure'
+
+export const sendSMSConfirmation = publicProcedure
+  .createServerAction()
   .input(
     z.object({
       phone: z.string(),
     }),
   )
-  .handler(async ({ input }) => {
+  .handler(async ({ input, ctx }) => {
     const { phone } = input
 
-    const apps = getFirebaseApps()
-    if (!apps) {
-      return {
-        error: {
-          message: 'Firebase apps not initialized',
-          code: FirebaseErrorCode.FIREBASE_APPS_NOT_INITIALIZED,
-        },
-      }
-    }
+    const apps = ctx.apps
 
     const verificationCode = await generateVerificationCode(phone)
 
@@ -88,7 +83,6 @@ export const sendSMSConfirmation = createServerAction()
         codeId: document.id,
       }
     } catch (error) {
-      console.log(error)
       if (error instanceof KMSThrottlingException) {
         return {
           success: false,
