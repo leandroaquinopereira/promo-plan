@@ -102,6 +102,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+
               <SidebarMenuItem key="tastings">
                 <SidebarMenuButton
                   asChild

@@ -43,6 +43,7 @@ import { formatPhoneNumber } from '@promo/utils/format-phone-number'
 import { getUserInitials } from '@promo/utils/get-user-initials'
 import { StopIcon } from '@radix-ui/react-icons'
 import {
+  ArrowRight,
   Calendar,
   CheckIcon,
   Edit3,
@@ -84,6 +85,10 @@ export function ListTableRow({
 
   function handleEditTasting() {
     router.push(`/tastings/${tasting.id}/edit`)
+  }
+
+  function handleViewTasks() {
+    router.push(`/tastings/${tasting.id}/tasks`)
   }
 
   function handleDeleteTasting() {
@@ -486,6 +491,10 @@ export function ListTableRow({
               <Edit3 className="size-4 mr-2" />
               Editar
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleViewTasks}>
+              <ArrowRight className="size-4 mr-2" />
+              Tarefas
+            </DropdownMenuItem>
             <TastingLogsSheet
               tastingId={tasting.id.toString()}
               onClose={() => setIsDropdownOpen(false)}
@@ -499,7 +508,7 @@ export function ListTableRow({
                 Ver logs
               </DropdownMenuItem>
             </TastingLogsSheet>
-            {tasting.status !==
+            {/* {tasting.status !==
               (TastingStatusEnum.IN_PROGRESS as TastingStatus) && (
               <DropdownMenuItem onClick={handleStartTasting}>
                 <Play className="size-4 mr-2" />
@@ -522,7 +531,7 @@ export function ListTableRow({
                   Finalizar degustação
                 </DropdownMenuItem>
               </Fragment>
-            )}
+            )} */}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive group"
