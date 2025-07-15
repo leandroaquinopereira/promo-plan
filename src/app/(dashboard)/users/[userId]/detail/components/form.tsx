@@ -216,7 +216,6 @@ export function DetailUserForm({ defaultValues }: DetailUserFormProps) {
           <Button
             type="button"
             className="flex-1"
-            isLoading={form.formState.isSubmitting}
             onClick={() => router.push(`/users/${userId}/edit`)}
           >
             Editar <ArrowRight className="size-4" />

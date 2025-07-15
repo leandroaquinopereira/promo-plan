@@ -15,12 +15,10 @@ import { auth } from '@promo/lib/next-auth/auth'
 
 type DashboardLayoutProps = {
   children: React.ReactNode
-  sheet: React.ReactNode
 }
 
 export default async function DashboardLayout({
   children,
-  sheet,
 }: DashboardLayoutProps) {
   const responseAuth = await auth()
 
@@ -36,7 +34,7 @@ export default async function DashboardLayout({
             }}
           />
           <SidebarInset>
-            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-border">
+            <header className="flex h-16 sticky top-0 backdrop-blur-xl z-10 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-border">
               <div className="flex items-center gap-2 px-4">
                 <SidebarTrigger className="-ml-1" />
                 {/* <Separator orientation="vertical" className="mr-2 h-4" /> */}
@@ -48,18 +46,19 @@ export default async function DashboardLayout({
               </div>
             </header>
             <ScrollArea className="max-h-screen h-screen">
-              <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-                <main className="flex min-h-[calc(100vh-theme(spacing.16))] flex-col">
-                  {children}
+              <div className="mt-14 flex flex-col h-screen">
+                <div className="flex flex-1 flex-col gap-4 p-4 py-0">
+                  <main className="flex min-h-[calc(100vh-theme(spacing.16))] flex-col justify-between">
+                    {children}
 
-                  {sheet}
-                  <Muted className="text-center w-full mt-auto pt-8 pb-2">
-                    &copy; {new Date().getFullYear()} Promo Plan. Todos os
-                    direitos reservados.
-                  </Muted>
-                </main>
+                    <Muted className="static bottom-0 text-center w-full mt-auto pt-8 pb-2">
+                      &copy; {new Date().getFullYear()} Promo Plan. Todos os
+                      direitos reservados.
+                    </Muted>
+                  </main>
+                </div>
+                <ScrollBar orientation="vertical" />
               </div>
-              <ScrollBar orientation="vertical" />
             </ScrollArea>
           </SidebarInset>
         </SidebarProvider>

@@ -15,6 +15,7 @@ export function ListTableHeader({
       <TableRow className="h-16">
         <TableHead className="w-[50px]">
           <Checkbox
+            className="ml-2 mb-3"
             checked={isAllSelected}
             onCheckedChange={(checked) => {
               if (checked !== 'indeterminate') {

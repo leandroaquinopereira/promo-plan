@@ -4,4 +4,8 @@ export enum Collections {
   GUIDES = 'guides',
   ROLES = 'roles',
   EVENTS = 'events',
+  COMPANIES = 'companies',
+  TASTINGS = 'tastings',
+  PRODUCTS = 'products',
+  TASTING_LOGS = 'tasting_logs',
 }

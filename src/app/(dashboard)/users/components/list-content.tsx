@@ -5,6 +5,7 @@ import { deleteUserBatchAction } from '@promo/actions/delete-user-batch'
 import { disableUserBatchAction } from '@promo/actions/disable-user-batch'
 import { Collections } from '@promo/collections'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
+import { TableSkeleton } from '@promo/components/table-skeleton'
 import { Card, CardContent } from '@promo/components/ui/card'
 import {
   Table,
@@ -34,7 +35,7 @@ import {
   type Unsubscribe,
   where,
 } from 'firebase/firestore'
-import { LoaderPinwheel, UserSearch } from 'lucide-react'
+import { UserSearch } from 'lucide-react'
 import { parseAsInteger, useQueryState } from 'nuqs'
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { toast } from 'sonner'
@@ -408,8 +409,6 @@ export function ListContent() {
       <Card className="p-4">
         <ListHeaderSection
           totalUsers={response?.total || 0}
-          onlineUsers={0}
-          workingUsers={0}
           onDeleteSelected={handleDeleteSelectedRows}
         />
         <CardContent className="p-0 m-0">
@@ -455,19 +454,7 @@ export function ListContent() {
                 </TableRow>
               )}
 
-              {isLoadingUsers && (
-                <TableRow>
-                  <TableCell
-                    colSpan={9}
-                    className="text-center text-muted-foreground p-20"
-                  >
-                    <LoaderPinwheel className="mx-auto mb-4 size-8 text-muted-foreground animate-spin" />
-                    Carregando usuários...
-                    <br />
-                    Aguarde enquanto os usuários são carregados.
-                  </TableCell>
-                </TableRow>
-              )}
+              {isLoadingUsers && <TableSkeleton quantity={7} />}
             </TableBody>
           </Table>
         </CardContent>
