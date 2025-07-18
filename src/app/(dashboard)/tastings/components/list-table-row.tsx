@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from '@bprogress/next'
-import type { Tasting, TastingStatus } from '@promo/@types/firebase'
+import type { Tasting, TastingStatus } from '@promo/types/firebase'
 import { changeTastingStatusAction } from '@promo/actions/change-tasting-status'
 import { deleteTastingAction } from '@promo/actions/delete-tasting'
 import { TastingLogsSheet } from '@promo/components/tasting-logs-sheet'

@@ -1,15 +1,16 @@
-import type { Company, Product, Tasting, User } from '@promo/@types/firebase'
 import { Collections } from '@promo/collections'
 import { CompanyStatusEnum } from '@promo/enum/company-status'
 import { ProductStatusEnum } from '@promo/enum/product-status'
 import { TastingStatusEnum } from '@promo/enum/tasting-status'
 import { getFirebaseApps } from '@promo/lib/firebase/server'
+import type { Company, Product, Tasting, User } from '@promo/types/firebase'
 import {
   convertFirebaseDate,
   convertFirebaseDateForForm,
 } from '@promo/utils/date-helpers'
 import { notFound } from 'next/navigation'
 
+import { TastingTasksHeader } from './components/header'
 import { TastingTasksContent } from './components/tasks-content'
 
 type TastingTasksPageProps = {
@@ -153,9 +154,14 @@ export default async function TastingTasksPage({
       updatedBy: tastingData.updatedBy || '',
     }
 
-    return <TastingTasksContent tasting={tasting} />
+    return (
+      <div className="container space-y-6 p-4">
+        <TastingTasksHeader tasting={tasting} />
+
+        <TastingTasksContent tasting={tasting} />
+      </div>
+    )
   } catch (error) {
-    console.error('Error in TastingTasksPage:', error)
     notFound()
   }
 }

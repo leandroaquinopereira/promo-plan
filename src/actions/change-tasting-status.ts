@@ -1,6 +1,6 @@
 'use server'
 
-import type { Tasting } from '@promo/@types/firebase'
+import type { Tasting } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
 import { TastingStatusEnum } from '@promo/enum/tasting-status'

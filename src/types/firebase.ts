@@ -1,12 +1,15 @@
+import type { TaskType } from '@promo/enum/tasks'
+import type { DocumentReference, Timestamp } from 'firebase/firestore'
+
 export type VerificationCode = {
-  sentAt: firestore.Timestamp
+  sentAt: Timestamp
   phone: string
   code: string
   verified: boolean
   verifiedAt: string
   tries: number
   expired?: boolean
-  expiredAt?: firestore.Timestamp
+  expiredAt?: Timestamp
   smsSnsResponse: {
     MessageId: string
     Message: string
@@ -31,14 +34,14 @@ export interface Guide {
   category: GuideCategory
   lastUpdated: string
   content?: string
-  updatedAt: firestore.Timestamp
+  updatedAt: Timestamp | Date
 }
 
 export type Role = {
   id: string
   name: string
   slug: string
-  createdAt: firestore.Timestamp
+  createdAt: Timestamp | Date
 }
 
 export type UserSituation = 'active' | 'inactive' | 'deleted'
@@ -50,15 +53,15 @@ export interface User {
   phone: string
   password: string
   email?: string
-  role: Role | firestore.DocumentReference
+  role: Role | DocumentReference
   active: boolean
   state: string
   city: string
-  createdAt: firestore.Timestamp
-  updatedAt: firestore.Timestamp
+  createdAt: Timestamp | Date
+  updatedAt: Timestamp | Date
   createdBy: string
   updatedBy: string
-  lastLoggedAt: firestore.Timestamp
+  lastLoggedAt: Timestamp | Date
   avatar?: string
   situation: UserSituation
   status: UserStatus
@@ -70,8 +73,8 @@ export interface Company {
   id: string
   name: string
   status: CompanyStatus
-  createdAt: firestore.Timestamp
-  updatedAt: firestore.Timestamp
+  createdAt: Timestamp | Date
+  updatedAt: Timestamp | Date
   createdBy: string
   updatedBy: string
 }
@@ -83,8 +86,8 @@ export interface Product {
   name: string
   description: string
   status: ProductStatus
-  createdAt: firestore.Timestamp
-  updatedAt: firestore.Timestamp
+  createdAt: Timestamp | Date
+  updatedAt: Timestamp | Date
   createdBy: string
   updatedBy: string
 }
@@ -98,27 +101,47 @@ export type TastingStatus =
   | 'todo'
   | 'in_progress'
 
-export type ProductTasting = Product | firestore.DocumentReference
+export type ProductTasting = Product | DocumentReference
 
 export interface Tasting {
   id: number
-  promoter: User | firestore.DocumentReference
-  startDate: firestore.Timestamp
-  endDate: firestore.Timestamp
-  company: Company | firestore.DocumentReference
+  promoter: User | DocumentReference
+  startDate: Timestamp | Date
+  endDate: Timestamp | Date
+  company: Company | DocumentReference
   products: ProductTasting[]
   notes?: string
   status: TastingStatus
-  createdAt: firestore.Timestamp
-  updatedAt: firestore.Timestamp
+  createdAt: Timestamp | Date
+  updatedAt: Timestamp | Date
   createdBy: string
   updatedBy: string
 }
 
 export interface TastingLog {
   id: string
-  tasting: Tasting | firestore.DocumentReference
+  tasting: Tasting | DocumentReference
   status: TastingStatus
-  createdAt: firestore.Timestamp
+  createdAt: Timestamp | Date
   createdBy: string
+}
+
+export interface Task {
+  id: number
+  title: string
+  description: string
+  type: TaskType
+  tasting: Tasting | DocumentReference
+  status: 'pending' | 'in_progress' | 'completed'
+  category: string
+  estimatedTime: number
+  completedAt?: Timestamp | Date
+  completedBy?: string
+  startedAt?: Timestamp | Date
+  assignedTo?: string
+  dependencies?: number[]
+  createdAt: Timestamp | Date
+  createdBy: string
+  updatedAt: Timestamp | Date
+  updatedBy: string
 }

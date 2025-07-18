@@ -2,7 +2,7 @@
 
 import 'highlight.js/styles/github.css'
 
-import type { Guide } from '@promo/@types/firebase'
+import type { Guide } from '@promo/types/firebase'
 import { saveGuideContentAction } from '@promo/actions/save-guide-content'
 import { defaultTiptapContent } from '@promo/constants/default-tiptap-content'
 import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'

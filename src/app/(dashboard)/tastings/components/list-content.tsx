@@ -1,7 +1,7 @@
 'use client'
 
-import type { PaginatedResponse } from '@promo/@types/common'
-import type { Company, Product, Tasting, User } from '@promo/@types/firebase'
+import type { PaginatedResponse } from '@promo/types/common'
+import type { Company, Product, Tasting, User } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { TableSkeleton } from '@promo/components/table-skeleton'

@@ -2,7 +2,7 @@
 
 import { useRouter } from '@bprogress/next'
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { Tasting } from '@promo/@types/firebase'
+import type { Tasting } from '@promo/types/firebase'
 import { createTastingAction } from '@promo/actions/create-tasting'
 import { updateTastingAction } from '@promo/actions/update-tasting'
 import { Collections } from '@promo/collections'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useDebouncedCallback } from '@mantine/hooks'
-import type { Company } from '@promo/@types/firebase'
+import type { Company } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { Button } from '@promo/components/ui/button'

@@ -2,7 +2,7 @@
 
 import { useRouter } from '@bprogress/next'
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { Company, Product } from '@promo/@types/firebase'
+import type { Company, Product } from '@promo/types/firebase'
 import { updateCompanyAction } from '@promo/actions/update-company'
 import { updateProductAction } from '@promo/actions/update-product'
 import { Button } from '@promo/components/ui/button'

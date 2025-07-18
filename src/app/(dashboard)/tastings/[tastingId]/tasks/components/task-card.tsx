@@ -1,36 +1,24 @@
 'use client'
 
+import { Camera } from '@promo/components/camera'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { Badge } from '@promo/components/ui/badge'
 import { Button } from '@promo/components/ui/button'
 import { Card, CardContent } from '@promo/components/ui/card'
 import { Separator } from '@promo/components/ui/separator'
+import { TaskType } from '@promo/enum/tasks'
 import { dayjsApi } from '@promo/lib/dayjs'
 import { cn } from '@promo/lib/utils'
+import type { Task } from '@promo/types/firebase'
 import {
   CheckCircle,
   Circle,
   Clock,
   Lock,
   Pause,
-  Play,
   User,
   Users,
 } from 'lucide-react'
-
-interface Task {
-  id: number
-  title: string
-  description: string
-  status: 'pending' | 'in_progress' | 'completed'
-  category: string
-  estimatedTime: string
-  completedAt?: Date
-  completedBy?: string
-  startedAt?: Date
-  assignedTo?: string
-  dependencies?: number[]
-}
 
 interface TaskCardProps {
   task: Task
@@ -67,7 +55,7 @@ const categoryLabels = {
 }
 
 export function TaskCard({ task, canStart, allTasks, index }: TaskCardProps) {
-  const getStatusIcon = (status: Task['status']) => {
+  function getStatusIcon(status: Task['status']) {
     switch (status) {
       case 'completed':
         return (
@@ -80,7 +68,7 @@ export function TaskCard({ task, canStart, allTasks, index }: TaskCardProps) {
     }
   }
 
-  const getStatusColor = (status: Task['status']) => {
+  function getStatusColor(status: Task['status']) {
     switch (status) {
       case 'completed':
         return 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20'
@@ -91,7 +79,7 @@ export function TaskCard({ task, canStart, allTasks, index }: TaskCardProps) {
     }
   }
 
-  const getStatusLabel = (status: Task['status']) => {
+  function getStatusLabel(status: Task['status']) {
     switch (status) {
       case 'completed':
         return 'Concluída'
@@ -102,7 +90,7 @@ export function TaskCard({ task, canStart, allTasks, index }: TaskCardProps) {
     }
   }
 
-  const canStartTask = () => {
+  function canStartTask() {
     if (!canStart) return false
     if (task.status !== 'pending') return false
 
@@ -117,13 +105,28 @@ export function TaskCard({ task, canStart, allTasks, index }: TaskCardProps) {
     return true
   }
 
-  const getDependencyTasks = () => {
+  function getDependencyTasks() {
     if (!task.dependencies || task.dependencies.length === 0) return []
 
     return task.dependencies.map((depId) => {
       const depTask = allTasks.find((t) => t.id === depId)
       return depTask ? depTask.title : `Tarefa ${depId}`
     })
+  }
+
+  function getEstimatedTime() {
+    const minutes = Math.floor(task.estimatedTime / 60)
+    const seconds = Math.abs(task.estimatedTime % 60)
+
+    return `${minutes} minutos e ${seconds} segundos`
+  }
+
+  function getButtonText(taskType: TaskType) {
+    if (taskType === TaskType.SETUP) {
+      return 'Tirar Foto'
+    }
+
+    return 'Iniciar'
   }
 
   const isBlocked = task.status === 'pending' && !canStartTask()
@@ -136,7 +139,7 @@ export function TaskCard({ task, canStart, allTasks, index }: TaskCardProps) {
     >
       <Card
         className={cn(
-          'transition-all duration-200',
+          'transition-all duration-200 p-0',
           getStatusColor(task.status),
           isBlocked && 'opacity-60',
           task.status === 'in_progress' &&
@@ -189,7 +192,7 @@ export function TaskCard({ task, canStart, allTasks, index }: TaskCardProps) {
               <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
                 <div className="flex items-center gap-1">
                   <Clock className="size-3" />
-                  <span>{task.estimatedTime}</span>
+                  <span>{getEstimatedTime()}</span>
                 </div>
                 {task.assignedTo && (
                   <div className="flex items-center gap-1">
@@ -229,13 +232,17 @@ export function TaskCard({ task, canStart, allTasks, index }: TaskCardProps) {
                     {task.startedAt && (
                       <span>
                         Iniciado:{' '}
-                        {dayjsApi(task.startedAt).format('DD/MM/YYYY HH:mm')}
+                        {dayjsApi(task.startedAt as Date).format(
+                          'DD/MM/YYYY HH:mm',
+                        )}
                       </span>
                     )}
                     {task.completedAt && (
                       <span>
                         Concluído:{' '}
-                        {dayjsApi(task.completedAt).format('DD/MM/YYYY HH:mm')}
+                        {dayjsApi(task.completedAt as Date).format(
+                          'DD/MM/YYYY HH:mm',
+                        )}
                       </span>
                     )}
                   </div>
@@ -245,10 +252,17 @@ export function TaskCard({ task, canStart, allTasks, index }: TaskCardProps) {
               {/* Actions */}
               <div className="flex items-center gap-2 mt-3">
                 {task.status === 'pending' && canStartTask() && (
-                  <Button size="sm" variant="default">
-                    <Play className="size-4 mr-1" />
-                    Iniciar
-                  </Button>
+                  <Camera
+                    onTakePhoto={() => {
+                      console.log('take photo')
+                    }}
+                    title="Tirar Foto"
+                    description="Quando você tirar a foto, o sistema irá salvar a foto e você poderá ver a foto na tarefa."
+                  >
+                    <Button size="sm" variant="default">
+                      {getButtonText(task.type)}
+                    </Button>
+                  </Camera>
                 )}
                 {task.status === 'in_progress' && (
                   <>

@@ -1,4 +1,4 @@
-import type { ProductStatus } from '@promo/@types/firebase'
+import type { ProductStatus } from '@promo/types/firebase'
 
 export const productStatusColors: Record<ProductStatus, string> = {
   active: 'bg-green-500/10 text-green-600 border-green-500/20',

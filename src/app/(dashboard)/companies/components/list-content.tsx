@@ -1,6 +1,6 @@
 'use client'
 
-import type { Company } from '@promo/@types/firebase'
+import type { Company } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { TableSkeleton } from '@promo/components/table-skeleton'

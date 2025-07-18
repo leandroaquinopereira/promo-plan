@@ -6,7 +6,7 @@ import {
   PublishCommandInput,
   SNSClient,
 } from '@aws-sdk/client-sns'
-import type { VerificationCode } from '@promo/@types/firebase'
+import type { VerificationCode } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { ActionsSuccessCodes } from '@promo/constants/actions-success-codes'
 import { AwsSnsErrorCode } from '@promo/constants/aws-sns-error-code'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from '@bprogress/next'
-import type { Product } from '@promo/@types/firebase'
+import type { Product } from '@promo/types/firebase'
 import { Badge } from '@promo/components/ui/badge'
 import { Button } from '@promo/components/ui/button'
 import { Checkbox } from '@promo/components/ui/checkbox'

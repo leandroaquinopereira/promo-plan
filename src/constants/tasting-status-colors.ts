@@ -1,4 +1,4 @@
-import type { TastingStatus } from '@promo/@types/firebase'
+import type { TastingStatus } from '@promo/types/firebase'
 
 export const tastingStatusColors: Record<TastingStatus, string> = {
   draft: 'bg-gray-500/10 text-gray-600 border-gray-500/20',

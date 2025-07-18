@@ -1,6 +1,6 @@
 'use client'
 
-import type { Role, User } from '@promo/@types/firebase'
+import type { Role, User } from '@promo/types/firebase'
 import { deleteUserBatchAction } from '@promo/actions/delete-user-batch'
 import { disableUserBatchAction } from '@promo/actions/disable-user-batch'
 import { Collections } from '@promo/collections'

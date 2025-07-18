@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from '@bprogress/next'
-import type { Company } from '@promo/@types/firebase'
+import type { Company } from '@promo/types/firebase'
 import { deleteCompanyAction } from '@promo/actions/delete-company'
 import { Badge } from '@promo/components/ui/badge'
 import { Button } from '@promo/components/ui/button'

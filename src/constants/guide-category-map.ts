@@ -1,4 +1,4 @@
-import type { GuideCategory } from '@promo/@types/firebase'
+import type { GuideCategory } from '@promo/types/firebase'
 
 export const guideCategoryMap: Record<GuideCategory, string> = {
   checklist: 'Checklists',

@@ -46,7 +46,7 @@ export default async function DashboardLayout({
               </div>
             </header>
             <ScrollArea className="max-h-screen h-screen">
-              <div className="mt-14 flex flex-col h-screen">
+              <div className="flex flex-col h-screen">
                 <div className="flex flex-1 flex-col gap-4 p-4 py-0">
                   <main className="flex min-h-[calc(100vh-theme(spacing.16))] flex-col justify-between">
                     {children}

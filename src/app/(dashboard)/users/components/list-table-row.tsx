@@ -1,5 +1,5 @@
 import { useRouter } from '@bprogress/next'
-import type { User, UserSituation } from '@promo/@types/firebase'
+import type { User, UserSituation } from '@promo/types/firebase'
 import { deleteUserAction } from '@promo/actions/delete-user'
 import { toggleUserSituationAction } from '@promo/actions/toggle-user-situation'
 import {

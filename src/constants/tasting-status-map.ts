@@ -1,4 +1,4 @@
-import type { TastingStatus } from '@promo/@types/firebase'
+import type { TastingStatus } from '@promo/types/firebase'
 
 export const tastingStatusMap: Record<TastingStatus, string> = {
   draft: 'Rascunho',

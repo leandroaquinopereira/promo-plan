@@ -1,4 +1,4 @@
-import type { Company, Product, Tasting, User } from '@promo/@types/firebase'
+import type { Company, Product, Tasting, User } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { CompanyStatusEnum } from '@promo/enum/company-status'
 import { ProductStatusEnum } from '@promo/enum/product-status'

@@ -1,4 +1,4 @@
-import type { Guide } from '@promo/@types/firebase'
+import type { Guide } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { P } from '@promo/components/ui/typography'
