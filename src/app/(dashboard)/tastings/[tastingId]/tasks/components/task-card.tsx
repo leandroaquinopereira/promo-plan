@@ -129,6 +129,10 @@ export function TaskCard({ task, canStart, allTasks, index }: TaskCardProps) {
     return 'Iniciar'
   }
 
+  function handleTakePhoto(photoUrlBase64: string) {
+    console.log('take photo', photoUrlBase64)
+  }
+
   const isBlocked = task.status === 'pending' && !canStartTask()
 
   return (
@@ -253,9 +257,7 @@ export function TaskCard({ task, canStart, allTasks, index }: TaskCardProps) {
               <div className="flex items-center gap-2 mt-3">
                 {task.status === 'pending' && canStartTask() && (
                   <Camera
-                    onTakePhoto={() => {
-                      console.log('take photo')
-                    }}
+                    onTakePhoto={handleTakePhoto}
                     title="Tirar Foto"
                     description="Quando você tirar a foto, o sistema irá salvar a foto e você poderá ver a foto na tarefa."
                   >

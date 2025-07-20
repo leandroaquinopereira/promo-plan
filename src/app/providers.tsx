@@ -5,6 +5,7 @@ import { MantineProvider } from '@mantine/core'
 import { ThemeProvider } from '@promo/components/theme/provider'
 import { Toaster } from '@promo/components/ui/sonner'
 import { TooltipProvider } from '@promo/components/ui/tooltip'
+import { AlertDialogContextProvider } from '@promo/context/alert-dialog'
 import { getQueryClient } from '@promo/lib/react-query'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
@@ -35,7 +36,9 @@ export function Providers({ children }: { children: ReactNode }) {
             <NuqsAdapter>
               <SessionProvider>
                 <QueryClientProvider client={queryClient}>
-                  {children}
+                  <AlertDialogContextProvider>
+                    {children}
+                  </AlertDialogContextProvider>
                   <ReactQueryDevtools />
                 </QueryClientProvider>
               </SessionProvider>
