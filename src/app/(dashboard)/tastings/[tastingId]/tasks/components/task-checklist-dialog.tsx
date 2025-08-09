@@ -31,7 +31,11 @@ import Image from 'next/image'
 import { useEffect, useState } from 'react'
 
 export type TaskChecklistDialogProps = {
-  onSubmit?: (materials: string, photos: any[]) => Promise<void>
+  onSubmit?: (
+    materials: string,
+    photos: any[],
+    observations: string,
+  ) => Promise<void>
   canStartTask?: () => boolean
   task: Task
   trigger?: React.ReactNode
@@ -45,7 +49,7 @@ export function TaskChecklistDialog({
 }: TaskChecklistDialogProps) {
   const [materials, setMaterials] = useState('')
   const [photos, setPhotos] = useState<string[]>([])
-
+  const [observations, setObservations] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const alertDialogProgress = useAlertDialogProgress()
@@ -114,7 +118,7 @@ export function TaskChecklistDialog({
 
   async function handleSubmit() {
     const uploadedPhotos = await handleUploadPhotos()
-    await onSubmit?.(materials, uploadedPhotos)
+    await onSubmit?.(materials, uploadedPhotos, observations)
   }
 
   useEffect(() => {
@@ -166,7 +170,7 @@ export function TaskChecklistDialog({
               className="min-h-40"
               rows={4}
               value={materials}
-              disabled={task.payload?.materials !== undefined}
+              disabled={!!task.payload}
               onChange={(e) => setMaterials(e.target.value)}
             />
           </div>
@@ -235,12 +239,24 @@ export function TaskChecklistDialog({
                 size="sm"
                 variant="outline"
                 className="w-full"
-                disabled={task.payload?.photos !== undefined}
+                disabled={!!task.payload}
               >
                 <CameraIcon className="size-4 mr-1" />
                 Adicionar foto
               </Button>
             </Camera>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Observações</Label>
+            <Textarea
+              placeholder="Digite as observações"
+              className="min-h-40"
+              rows={4}
+              value={observations}
+              disabled={!!task.payload}
+              onChange={(e) => setObservations(e.target.value)}
+            />
           </div>
         </div>
 

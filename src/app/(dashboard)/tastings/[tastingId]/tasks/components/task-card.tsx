@@ -178,7 +178,11 @@ export function TaskCard({ task, index, canStartTask }: TaskCardProps) {
     window.open(downloadUrl, '_blank')
   }
 
-  async function handleSubmitChecklist(materials: string, photos: any[]) {
+  async function handleSubmitChecklist(
+    materials: string,
+    photos: any[],
+    observations: string,
+  ) {
     const [result, resultError] = await completeTask({
       taskId: task.id.toString(),
       taskTastingId: String(task.tasting),
@@ -186,6 +190,7 @@ export function TaskCard({ task, index, canStartTask }: TaskCardProps) {
       payload: {
         materials,
         photos,
+        observations,
       },
     })
 
