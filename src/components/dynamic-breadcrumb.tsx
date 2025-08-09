@@ -42,7 +42,7 @@ export function DynamicBreadcrumb() {
 
   if (segments.length === 0) {
     return (
-      <Breadcrumb>
+      <Breadcrumb className="invisible sm:visible">
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbPage className="flex items-center gap-2">
@@ -56,7 +56,7 @@ export function DynamicBreadcrumb() {
   }
 
   return (
-    <Breadcrumb>
+    <Breadcrumb className="invisible sm:visible">
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>

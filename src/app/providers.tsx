@@ -6,6 +6,7 @@ import { ThemeProvider } from '@promo/components/theme/provider'
 import { Toaster } from '@promo/components/ui/sonner'
 import { TooltipProvider } from '@promo/components/ui/tooltip'
 import { AlertDialogContextProvider } from '@promo/context/alert-dialog'
+import { AlertDialogProgressContextProvider } from '@promo/context/alert-dialog-progress'
 import { getQueryClient } from '@promo/lib/react-query'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
@@ -37,7 +38,9 @@ export function Providers({ children }: { children: ReactNode }) {
               <SessionProvider>
                 <QueryClientProvider client={queryClient}>
                   <AlertDialogContextProvider>
-                    {children}
+                    <AlertDialogProgressContextProvider>
+                      {children}
+                    </AlertDialogProgressContextProvider>
                   </AlertDialogContextProvider>
                   <ReactQueryDevtools />
                 </QueryClientProvider>

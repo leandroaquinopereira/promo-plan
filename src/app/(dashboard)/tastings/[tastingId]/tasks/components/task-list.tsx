@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@promo/components/ui/card'
 import { cn } from '@promo/lib/utils'
-import type { Task } from '@promo/types/firebase'
+import type { Task } from '@promo/types/models/task'
 import { ArrowRight, CheckCircle, Inbox } from 'lucide-react'
 
 import { TaskCard } from './task-card'
@@ -16,11 +16,13 @@ import { TaskNoDayAlertOverlay } from './task-no-day-alert-overlay'
 type TaskListProps = {
   tasks: Task[]
   isEnableToStartTasks?: boolean
+  canStartTask?: (task: Task) => boolean
 }
 
-export async function TaskList({
+export function TaskList({
   tasks,
   isEnableToStartTasks = false,
+  canStartTask,
 }: TaskListProps) {
   return (
     <Card className={cn(!isEnableToStartTasks && 'h-[52rem] overflow-hidden')}>
@@ -46,9 +48,8 @@ export async function TaskList({
             <TaskCard
               key={task.id}
               task={task}
-              canStart={isEnableToStartTasks}
-              allTasks={tasks}
               index={index}
+              canStartTask={canStartTask}
             />
           ))}
         </div>

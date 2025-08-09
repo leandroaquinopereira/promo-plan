@@ -1,4 +1,3 @@
-import type { Tasting } from '@promo/types/firebase'
 import { Badge } from '@promo/components/ui/badge'
 import {
   Card,
@@ -8,16 +7,29 @@ import {
 } from '@promo/components/ui/card'
 import { Separator } from '@promo/components/ui/separator'
 import { dayjsApi } from '@promo/lib/dayjs'
-import { convertFirebaseDate } from '@promo/utils/date-helpers'
+import type { Product } from '@promo/types/models/product'
 import { formatPhoneNumber } from '@promo/utils/format-phone-number'
 import { getUserInitials } from '@promo/utils/get-user-initials'
 import { Building2, Calendar, MapPin, Package, User, Users } from 'lucide-react'
 
 type TaskTastingInformationProps = {
-  tasting: Tasting
+  tasting: {
+    promoter: {
+      name: string
+      phone: string
+      city: string
+      state: string
+    }
+    company: {
+      name: string
+    }
+    startDate: string
+    endDate: string
+    products: Product[]
+  }
 }
 
-export async function TaskTastingInformation({
+export function TaskTastingInformation({
   tasting,
 }: TaskTastingInformationProps) {
   return (
@@ -74,13 +86,8 @@ export async function TaskTastingInformation({
               Período
             </div>
             <p className="font-medium">
-              {dayjsApi(convertFirebaseDate(tasting.startDate)).format(
-                'DD/MM/YYYY',
-              )}{' '}
-              -{' '}
-              {dayjsApi(convertFirebaseDate(tasting.endDate)).format(
-                'DD/MM/YYYY',
-              )}
+              {dayjsApi(tasting.startDate).format('DD/MM/YYYY')} -{' '}
+              {dayjsApi(tasting.endDate).format('DD/MM/YYYY')}
             </p>
           </div>
         </div>

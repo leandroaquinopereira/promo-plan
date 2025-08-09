@@ -102,7 +102,7 @@ export const RangeDatePicker = forwardRef<HTMLDivElement, RangeDatePickerProps>(
           <Group
             className={cn(
               dateInputStyle,
-              'pe-9',
+              'pe-9 dark:bg-input/30',
               error &&
                 'border-destructive focus-within:border-destructive focus-within:ring-destructive/20',
             )}
@@ -122,7 +122,7 @@ export const RangeDatePicker = forwardRef<HTMLDivElement, RangeDatePickerProps>(
 
           <Button
             className={cn(
-              'text-muted-foreground/80 hover:text-foreground z-10 -ms-9 -me-px flex w-9 items-center justify-center rounded-e-md transition-[color,box-shadow] outline-none',
+              'text-muted-foreground/80 cursor-pointer hover:text-foreground z-10 -ms-9 -me-px flex w-9 items-center justify-center rounded-e-md transition-[color,box-shadow] outline-none',
               'data-focus-visible:border-ring data-focus-visible:ring-ring/50 data-focus-visible:ring-[3px]',
               disabled && 'cursor-not-allowed opacity-50',
               error && 'text-destructive/80 hover:text-destructive',

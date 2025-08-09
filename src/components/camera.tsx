@@ -432,6 +432,7 @@ export function Camera({
 
       const dataUrl = await canvas.toDataURL('image/png', 1.0)
 
+      handleAlertDialogAction()
       onTakePhoto(dataUrl)
     } catch (error) {
       console.log(error, 'error')
@@ -519,7 +520,7 @@ export function Camera({
                   autoPlay
                   playsInline
                   muted
-                  className="w-full sm:w-full object-cover rounded-lg"
+                  className="w-full sm:w-full h-auto sm:h-[calc(100dvh-20rem)] object-cover rounded-lg"
                 />
 
                 {isLoading && (

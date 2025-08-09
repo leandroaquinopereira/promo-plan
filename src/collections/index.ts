@@ -8,4 +8,6 @@ export enum Collections {
   TASTINGS = 'tastings',
   PRODUCTS = 'products',
   TASTING_LOGS = 'tasting_logs',
+  TASK_PACKAGES = 'task_packages',
+  TASKS = 'tasks',
 }

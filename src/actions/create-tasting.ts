@@ -3,8 +3,11 @@
 import { Collections } from '@promo/collections'
 import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
 import { TastingStatusEnum } from '@promo/enum/tasting-status'
+import { buildTasks } from '@promo/factory/build-tasks'
+import { dayjsApi } from '@promo/lib/dayjs'
 import { serverActionOutputSchema } from '@promo/schemas/server-action-output'
 import { extractValueFromCombobox } from '@promo/utils/extract-value-from-combobox'
+import { generateId } from '@promo/utils/generate-id'
 import { firestore } from 'firebase-admin'
 import { z } from 'zod'
 
@@ -88,9 +91,11 @@ export const createTastingAction = authProcedure
 
     const row = (total.data().count || 0) + 1
 
+    const uid = generateId()
+
     await ctx.apps.firestore
       .collection(Collections.TASTINGS)
-      .doc(row.toString())
+      .doc(uid)
       .set({
         createdAt: firestore.Timestamp.now(),
         updatedAt: firestore.Timestamp.now(),
@@ -104,6 +109,40 @@ export const createTastingAction = authProcedure
         endDate: firestore.Timestamp.fromDate(endDate),
         notes: notes?.trim() || '',
       })
+
+    await ctx.apps.firestore.collection(Collections.TASTING_LOGS).add({
+      tasting: ctx.apps.firestore.collection(Collections.TASTINGS).doc(uid),
+      status: TastingStatusEnum.DRAFT,
+      createdAt: firestore.Timestamp.now(),
+      createdBy: ctx.session.user.id,
+    })
+
+    const startDateDayjs = dayjsApi(startDate)
+    const endDateDayjs = dayjsApi(endDate)
+
+    const days = endDateDayjs.diff(startDateDayjs, 'day')
+
+    for (let i = 0; i < days; i++) {
+      const day = startDateDayjs.add(i, 'day')
+      const dayInStr = day.format('YYYYMMDD')
+
+      const packageId = `package_${uid}_day_${dayInStr}`
+      const packageRef = ctx.apps.firestore
+        .collection(Collections.TASTINGS)
+        .doc(uid)
+        .collection(Collections.TASK_PACKAGES)
+        .doc(packageId)
+
+      await packageRef.set({
+        createdAt: firestore.Timestamp.now(),
+        updatedAt: firestore.Timestamp.now(),
+      })
+
+      const tasks = buildTasks(uid, packageId)
+      await Promise.all(
+        tasks.map((task) => packageRef.collection(Collections.TASKS).add(task)),
+      )
+    }
 
     return {
       success: true,

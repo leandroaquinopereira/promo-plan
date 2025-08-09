@@ -1,13 +1,9 @@
 import { Collections } from '@promo/collections'
-import { CompanyStatusEnum } from '@promo/enum/company-status'
 import { ProductStatusEnum } from '@promo/enum/product-status'
-import { TastingStatusEnum } from '@promo/enum/tasting-status'
+import { dayjsApi } from '@promo/lib/dayjs'
 import { getFirebaseApps } from '@promo/lib/firebase/server'
-import type { Company, Product, Tasting, User } from '@promo/types/firebase'
-import {
-  convertFirebaseDate,
-  convertFirebaseDateForForm,
-} from '@promo/utils/date-helpers'
+import type { Task } from '@promo/types/models/task'
+import { convertFirebaseDate } from '@promo/utils/date-helpers'
 import { notFound } from 'next/navigation'
 
 import { TastingTasksHeader } from './components/header'
@@ -43,21 +39,10 @@ export default async function TastingTasksPage({
       notFound()
     }
 
-    // Extract promoter ID safely
-    const promoterRefStr = tastingData.promoter
-    const promoterId =
-      typeof promoterRefStr === 'string'
-        ? String(promoterRefStr).replace('/users/', '')
-        : promoterRefStr?.id || promoterRefStr?.path?.split('/').pop() || ''
+    const companyRef = apps.firestore
+      .collection(Collections.COMPANIES)
+      .doc(tastingData.company.id)
 
-    // Extract company ID safely
-    const companyRefStr = tastingData.company
-    const companyId =
-      typeof companyRefStr === 'string'
-        ? String(companyRefStr).replace('/companies/', '')
-        : companyRefStr?.id || companyRefStr?.path?.split('/').pop() || ''
-
-    // Extract product IDs safely
     const productsRefStrs = tastingData.products || []
     const productIds = productsRefStrs
       .map((productRef: any) => {
@@ -68,61 +53,21 @@ export default async function TastingTasksPage({
       })
       .filter(Boolean)
 
-    // Fetch all documents in parallel
-    const [promoterDoc, companyDoc, ...productDocs] = await Promise.all([
+    const promoterRefStr = tastingData.promoter
+    const promoterId =
+      typeof promoterRefStr === 'string'
+        ? String(promoterRefStr).replace('/users/', '')
+        : promoterRefStr?.id || promoterRefStr?.path?.split('/').pop() || ''
+
+    const [companyDoc, promoterDoc, ...productDocs] = await Promise.all([
+      companyRef.get(),
       apps.firestore.collection(Collections.USERS).doc(promoterId).get(),
-      apps.firestore.collection(Collections.COMPANIES).doc(companyId).get(),
       ...productIds.map((id: string) =>
         apps.firestore.collection(Collections.PRODUCTS).doc(id).get(),
       ),
     ])
 
-    // Check if required documents exist
-    if (!promoterDoc.exists || !companyDoc.exists) {
-      notFound()
-    }
-
-    const promoterData = promoterDoc.data()
-    const companyData = companyDoc.data()
-
-    if (!promoterData || !companyData) {
-      notFound()
-    }
-
-    // Create clean promoter object
-    const promoter: User = {
-      id: promoterDoc.id,
-      name: promoterData.name || '',
-      phone: promoterData.phone || '',
-      email: promoterData.email || '',
-      password: promoterData.password || '',
-      role: 'freelancer' as any,
-      active: promoterData.active || false,
-      state: promoterData.state || '',
-      city: promoterData.city || '',
-      createdAt: convertFirebaseDate(promoterData.createdAt),
-      updatedAt: convertFirebaseDate(promoterData.updatedAt),
-      createdBy: promoterData.createdBy || '',
-      updatedBy: promoterData.updatedBy || '',
-      lastLoggedAt: convertFirebaseDate(promoterData.lastLoggedAt),
-      avatar: promoterData.avatar,
-      situation: promoterData.situation || 'active',
-      status: promoterData.status || 'offline',
-    }
-
-    // Create clean company object
-    const company: Company = {
-      id: companyDoc.id,
-      name: companyData.name || '',
-      status: companyData.status || CompanyStatusEnum.ACTIVE,
-      createdAt: convertFirebaseDate(companyData.createdAt),
-      updatedAt: convertFirebaseDate(companyData.updatedAt),
-      createdBy: companyData.createdBy || '',
-      updatedBy: companyData.updatedBy || '',
-    }
-
-    // Create clean products array
-    const products: Product[] = productDocs
+    const products = productDocs
       .filter((doc) => doc.exists)
       .map((doc) => {
         const data = doc.data()!
@@ -138,27 +83,59 @@ export default async function TastingTasksPage({
         }
       })
 
-    // Create clean tasting object
-    const tasting: Tasting = {
-      id: parseInt(tastingDoc.id),
-      promoter,
-      company,
-      products,
-      startDate: convertFirebaseDateForForm(tastingData.startDate),
-      endDate: convertFirebaseDateForForm(tastingData.endDate),
-      notes: tastingData.notes || '',
-      status: tastingData.status || TastingStatusEnum.DRAFT,
-      createdAt: convertFirebaseDate(tastingData.createdAt),
-      updatedAt: convertFirebaseDate(tastingData.updatedAt),
-      createdBy: tastingData.createdBy || '',
-      updatedBy: tastingData.updatedBy || '',
-    }
+    const now = dayjsApi()
+    const nowInStr = now.format('YYYYMMDD')
+
+    const packageRef = apps.firestore
+      .collection(Collections.TASTINGS)
+      .doc(tastingId)
+      .collection(Collections.TASK_PACKAGES)
+      .doc(`package_${tastingId}_day_${nowInStr}`)
+
+    const tasks = await packageRef.collection(Collections.TASKS).get()
+    const tasksData = tasks.docs.map((doc) => {
+      const data = doc.data()
+      if (!data) {
+        return null
+      }
+
+      return {
+        ...data,
+        completedAt: data?.completedAt
+          ? convertFirebaseDate(data?.completedAt)
+          : undefined,
+        id: doc.id,
+      } as unknown as Task
+    })
 
     return (
-      <div className="container space-y-6 p-4">
-        <TastingTasksHeader tasting={tasting} />
+      <div className="container space-y-6 p-4 mx-auto">
+        <TastingTasksHeader
+          tasting={{
+            id: tastingRef.id,
+            company: {
+              name: companyDoc.data()?.name || '',
+            },
+          }}
+        />
 
-        <TastingTasksContent tasting={tasting} />
+        <TastingTasksContent
+          tasting={{
+            startDate: convertFirebaseDate(tastingData.startDate).toISOString(),
+            endDate: convertFirebaseDate(tastingData.endDate).toISOString(),
+            products,
+            company: {
+              name: companyDoc.data()?.name || '',
+            },
+            promoter: {
+              name: promoterDoc.data()?.name || '',
+              phone: promoterDoc.data()?.phone || '',
+              city: promoterDoc.data()?.city || '',
+              state: promoterDoc.data()?.state || '',
+            },
+            tasks: tasksData.filter((task) => task !== null),
+          }}
+        />
       </div>
     )
   } catch (error) {

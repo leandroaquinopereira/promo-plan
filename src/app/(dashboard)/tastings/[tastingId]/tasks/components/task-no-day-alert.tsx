@@ -1,12 +1,13 @@
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { Card, CardContent } from '@promo/components/ui/card'
 import { dayjsApi } from '@promo/lib/dayjs'
-import type { Tasting } from '@promo/types/firebase'
-import { convertFirebaseDate } from '@promo/utils/date-helpers'
 import { Clock } from 'lucide-react'
 
 type TaskNoDayAlertProps = {
-  tasting: Tasting
+  tasting: {
+    startDate: string
+    endDate: string
+  }
 }
 
 export async function TaskNoDayAlert({ tasting }: TaskNoDayAlertProps) {
@@ -28,14 +29,8 @@ export async function TaskNoDayAlert({ tasting }: TaskNoDayAlertProps) {
               </h3>
               <p className="text-sm text-amber-700 dark:text-amber-300">
                 As tarefas só podem ser iniciadas durante o período da
-                degustação:{' '}
-                {dayjsApi(convertFirebaseDate(tasting.startDate)).format(
-                  'DD/MM/YYYY',
-                )}{' '}
-                -{' '}
-                {dayjsApi(convertFirebaseDate(tasting.endDate)).format(
-                  'DD/MM/YYYY',
-                )}
+                degustação: {dayjsApi(tasting.startDate).format('DD/MM/YYYY')} -{' '}
+                {dayjsApi(tasting.endDate).format('DD/MM/YYYY')}
               </p>
             </div>
           </div>
