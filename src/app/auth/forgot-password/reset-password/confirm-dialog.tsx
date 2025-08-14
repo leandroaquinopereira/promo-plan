@@ -151,10 +151,14 @@ export function ConfirmDialog({
 
     if (result?.error) {
       switch (result.error.code) {
-        case FirebaseErrorCode.FIREBASE_APPS_NOT_INITIALIZED:
         case AwsSnsErrorCode.KMS_ACCESS_DENIED_EXCEPTION:
         case AwsSnsErrorCode.KMS_KEY_NOT_FOUND_EXCEPTION:
         case AwsSnsErrorCode.KMS_INVALID_STATE_EXCEPTION:
+          return toast.error('Erro ao se conectar com nossos servidores', {
+            description: 'Erro ao se conectar com nossos servidores',
+          })
+
+        case FirebaseErrorCode.FIREBASE_APPS_NOT_INITIALIZED:
           return toast.error('Erro ao se conectar com nossos servidores', {
             description: 'Erro ao se conectar com nossos servidores',
           })

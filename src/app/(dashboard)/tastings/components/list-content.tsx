@@ -183,7 +183,7 @@ export function ListContent() {
                 }
               }
 
-              tasting.promoter = promoter
+              tasting.promoter = promoter as any
 
               const companyRefStr = tasting.company
               const companyId =
@@ -205,7 +205,7 @@ export function ListContent() {
                 }
               }
 
-              tasting.company = company
+              tasting.company = company as any
 
               const productsRefStrs = tasting.products
               const products: Product[] = []
@@ -230,7 +230,7 @@ export function ListContent() {
                 }
               }
 
-              tasting.products = products
+              tasting.products = products as any
               tasting.createdAt = convertFirebaseDate(tasting.createdAt)
               tasting.startDate = convertFirebaseDate(tasting.startDate)
               tasting.endDate = convertFirebaseDate(tasting.endDate)

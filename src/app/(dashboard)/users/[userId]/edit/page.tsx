@@ -30,12 +30,19 @@ export default async function EditUser({ params }: EditUserProps) {
     ...user.data(),
   } as User
 
-  userData.role = userData.role.id
-  userData.createdAt = userData.createdAt?.toDate()
-  userData.updatedAt = userData.updatedAt?.toDate()
-  userData.lastLoggedAt = userData.lastLoggedAt?.toDate() || null
-
-  console.log(userData.role)
+  userData.role = userData.role.id as any
+  userData.createdAt =
+    userData.createdAt instanceof Date
+      ? userData.createdAt
+      : userData.createdAt.toDate()
+  userData.updatedAt =
+    userData.updatedAt instanceof Date
+      ? userData.updatedAt
+      : userData.updatedAt.toDate()
+  userData.lastLoggedAt =
+    userData.lastLoggedAt instanceof Date
+      ? userData.lastLoggedAt
+      : userData.lastLoggedAt?.toDate() || null
 
   return (
     <div className="container mx-auto max-w-2xl py-8">
@@ -47,7 +54,7 @@ export default async function EditUser({ params }: EditUserProps) {
       </div>
 
       <EditUserForm
-        defaultValues={{ ...userData, permission: userData.role }}
+        defaultValues={{ ...userData, permission: userData.role as any }}
       />
     </div>
   )

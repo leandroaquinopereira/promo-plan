@@ -39,7 +39,7 @@ const schema = z.object({
       message: 'Nome deve ter pelo menos 3 caracteres',
     }),
 
-  status: z.enum([CompanyStatusEnum.ACTIVE, CompanyStatusEnum.INACTIVE], {
+  status: z.nativeEnum(CompanyStatusEnum, {
     required_error: 'Status é obrigatório',
     // errorMap: () => ({ message: 'Status é obrigatório' }),
   }),

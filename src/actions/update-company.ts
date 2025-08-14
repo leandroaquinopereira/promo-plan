@@ -16,7 +16,7 @@ export const updateCompanyAction = authProcedure
     z.object({
       id: z.string(),
       name: z.string(),
-      status: z.enum([CompanyStatusEnum.ACTIVE, CompanyStatusEnum.INACTIVE]),
+      status: z.nativeEnum(CompanyStatusEnum),
     }),
   )
   .output(serverActionOutputSchema)

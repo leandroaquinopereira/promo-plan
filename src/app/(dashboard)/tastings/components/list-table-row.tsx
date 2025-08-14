@@ -285,31 +285,31 @@ export function ListTableRow({
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
             <AvatarImage
-              src={tasting.promoter.avatar}
-              alt={tasting.promoter.name}
+              src={(tasting.promoter as any).avatar}
+              alt={(tasting.promoter as any).name}
             />
             <AvatarFallback>
-              {getUserInitials(tasting.promoter.name)}
+              {getUserInitials((tasting.promoter as any).name)}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <div className="font-medium">{tasting.promoter.name}</div>
+            <div className="font-medium">{(tasting.promoter as any).name}</div>
             <div className="text-xs text-muted-foreground">
-              {formatPhoneNumber(tasting.promoter.phone)}
+              {formatPhoneNumber((tasting.promoter as any).phone)}
             </div>
           </div>
         </div>
       </TableCell>
       <TableCell>
-        <div className="font-medium">{tasting.company.name}</div>
+        <div className="font-medium">{(tasting.company as any).name}</div>
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-1">
           <MapPin className="size-3 text-muted-foreground" />
           <div className="text-sm">
-            <div>{tasting.promoter.city}</div>
+            <div>{(tasting.promoter as any).city}</div>
             <div className="text-xs text-muted-foreground">
-              {tasting.promoter.state}
+              {(tasting.promoter as any).state}
             </div>
           </div>
         </div>
@@ -400,11 +400,11 @@ export function ListTableRow({
 
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm truncate group-hover/item:text-purple-700 dark:group-hover/item:text-purple-400 transition-colors">
-                        {product.name}
+                        {(product as any).name}
                       </p>
-                      {product.description && (
+                      {(product as any).description && (
                         <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                          {product.description}
+                          {(product as any).description}
                         </p>
                       )}
                     </div>
@@ -412,16 +412,20 @@ export function ListTableRow({
                     <div className="shrink-0">
                       <Badge
                         variant={
-                          product.status === 'active' ? 'default' : 'secondary'
+                          (product as any).status === 'active'
+                            ? 'default'
+                            : 'secondary'
                         }
                         className={cn(
                           'text-xs transition-all duration-200',
-                          product.status === 'active'
+                          (product as any).status === 'active'
                             ? 'bg-green-100 text-green-700 border-green-200 group-hover/item:bg-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-800'
                             : 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700',
                         )}
                       >
-                        {product.status === 'active' ? 'Ativo' : 'Inativo'}
+                        {(product as any).status === 'active'
+                          ? 'Ativo'
+                          : 'Inativo'}
                       </Badge>
                     </div>
                   </div>

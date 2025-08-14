@@ -236,9 +236,11 @@ export function ListTableRow({
         </div>
       </TableCell>
       <TableCell>
-        <Badge variant={getPermissionBadgeVariant(user.role.slug)}>
-          {user.role.slug === 'admin' ? <Shield className="size-3" /> : null}
-          {user.role.name}
+        <Badge variant={getPermissionBadgeVariant((user.role as any).slug)}>
+          {(user.role as any).slug === 'admin' ? (
+            <Shield className="size-3" />
+          ) : null}
+          {(user.role as any).name}
         </Badge>
       </TableCell>
       {/* <TableCell>
@@ -254,13 +256,23 @@ export function ListTableRow({
         <Tooltip>
           <TooltipTrigger disabled={!user.lastLoggedAt} className="cursor-help">
             <div className="text-xs text-muted-foreground capitalize">
-              {user.lastLoggedAt ? dayjsApi(user.lastLoggedAt).fromNow() : '-'}
+              {user.lastLoggedAt
+                ? dayjsApi(
+                    user.lastLoggedAt instanceof Date
+                      ? user.lastLoggedAt
+                      : user.lastLoggedAt.toDate(),
+                  ).fromNow()
+                : '-'}
             </div>
           </TooltipTrigger>
           <TooltipContent>
             Último acesso:{' '}
             {user.lastLoggedAt
-              ? dayjsApi(user.lastLoggedAt).format('DD/MM/YYYY HH:mm')
+              ? dayjsApi(
+                  user.lastLoggedAt instanceof Date
+                    ? user.lastLoggedAt
+                    : user.lastLoggedAt.toDate(),
+                ).format('DD/MM/YYYY HH:mm')
               : 'Nunca'}
           </TooltipContent>
         </Tooltip>

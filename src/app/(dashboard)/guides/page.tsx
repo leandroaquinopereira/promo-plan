@@ -61,7 +61,11 @@ export default async function Guides({ searchParams }: GuidesProps) {
               key={guide.id}
               guide={{
                 ...guide,
-                lastUpdated: dayjsApi(guide.updatedAt.toDate()).fromNow(),
+                lastUpdated: dayjsApi(
+                  guide.updatedAt instanceof Date
+                    ? guide.updatedAt
+                    : guide.updatedAt.toDate(),
+                ).fromNow(),
               }}
             />
           ))}

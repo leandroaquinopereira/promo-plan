@@ -102,12 +102,12 @@ export function EditTastingForm({ tasting }: EditTastingFormProps) {
       products: tasting.products.map((product) =>
         buildValueForCombobox({
           value: product.id,
-          label: product.name,
+          label: (product as any).name,
         }),
       ),
       startDate: convertFirebaseDateForForm(tasting.startDate),
       endDate: convertFirebaseDateForForm(tasting.endDate),
-      city: tasting.promoter.city,
+      city: (tasting.promoter as any).city,
       notes: tasting.notes || '',
     },
   })

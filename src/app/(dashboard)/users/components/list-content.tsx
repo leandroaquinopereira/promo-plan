@@ -261,10 +261,13 @@ export function ListContent() {
                     }
                   }
 
-                  user.role = role
+                  user.role = role as any
 
                   if (user.lastLoggedAt) {
-                    user.lastLoggedAt = user.lastLoggedAt.toDate()
+                    user.lastLoggedAt =
+                      user.lastLoggedAt instanceof Date
+                        ? user.lastLoggedAt
+                        : user.lastLoggedAt.toDate()
                   }
 
                   const eventsInProgressCount = query(

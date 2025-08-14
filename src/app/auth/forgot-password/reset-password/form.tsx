@@ -109,7 +109,6 @@ export function ResetPasswordForm() {
 
     if (result?.error) {
       switch (result.error.code) {
-        case FirebaseErrorCode.FIREBASE_APPS_NOT_INITIALIZED:
         case AwsSnsErrorCode.KMS_ACCESS_DENIED_EXCEPTION:
         case AwsSnsErrorCode.KMS_KEY_NOT_FOUND_EXCEPTION:
         case AwsSnsErrorCode.KMS_INVALID_STATE_EXCEPTION:

@@ -1,4 +1,4 @@
-import type { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
+import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
 
 export class FirebaseError extends Error {
   constructor(

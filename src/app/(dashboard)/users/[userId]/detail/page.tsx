@@ -30,10 +30,19 @@ export default async function DetailUser({ params }: DetailUserProps) {
     ...user.data(),
   } as User
 
-  userData.role = userData.role.id
-  userData.createdAt = userData.createdAt?.toDate()
-  userData.updatedAt = userData.updatedAt?.toDate()
-  userData.lastLoggedAt = userData.lastLoggedAt?.toDate() || null
+  userData.role = userData.role.id as any
+  userData.createdAt =
+    userData.createdAt instanceof Date
+      ? userData.createdAt
+      : userData.createdAt.toDate()
+  userData.updatedAt =
+    userData.updatedAt instanceof Date
+      ? userData.updatedAt
+      : userData.updatedAt.toDate()
+  userData.lastLoggedAt =
+    userData.lastLoggedAt instanceof Date
+      ? userData.lastLoggedAt
+      : userData.lastLoggedAt?.toDate() || null
 
   console.log(userData.role)
 
@@ -47,7 +56,7 @@ export default async function DetailUser({ params }: DetailUserProps) {
       </div>
 
       <DetailUserForm
-        defaultValues={{ ...userData, permission: userData.role }}
+        defaultValues={{ ...userData, permission: userData.role as any }}
       />
     </div>
   )
