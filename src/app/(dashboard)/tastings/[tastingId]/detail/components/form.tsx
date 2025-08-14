@@ -2,7 +2,6 @@
 
 import { useRouter } from '@bprogress/next'
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { Tasting } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { Button } from '@promo/components/ui/button'
 import { Combobox } from '@promo/components/ui/combobox'
@@ -20,6 +19,7 @@ import MultipleSelector from '@promo/components/ui/multiselect'
 import { Textarea } from '@promo/components/ui/textarea'
 import { CompanyStatusEnum } from '@promo/enum/company-status'
 import { firestore } from '@promo/lib/firebase/client'
+import type { Tasting } from '@promo/types/firebase'
 import {
   buildSeparator,
   buildValueForCombobox,

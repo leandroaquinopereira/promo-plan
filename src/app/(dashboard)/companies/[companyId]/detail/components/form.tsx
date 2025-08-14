@@ -2,7 +2,6 @@
 
 import { useRouter } from '@bprogress/next'
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { Company } from '@promo/types/firebase'
 import { Button } from '@promo/components/ui/button'
 import {
   Form,
@@ -21,6 +20,7 @@ import {
   SelectValue,
 } from '@promo/components/ui/select'
 import { CompanyStatusEnum } from '@promo/enum/company-status'
+import type { Company } from '@promo/types/firebase'
 import { ArrowRight } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'

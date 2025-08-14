@@ -1,7 +1,6 @@
 'use client'
 
 import { useDebouncedCallback } from '@mantine/hooks'
-import type { Company } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { Button } from '@promo/components/ui/button'
@@ -30,6 +29,7 @@ import {
 import { brazilianStates } from '@promo/constants/brazilian-states'
 import { CompanyStatusEnum } from '@promo/enum/company-status'
 import { firestore } from '@promo/lib/firebase/client'
+import type { Company } from '@promo/types/firebase'
 import { buildValueForCombobox } from '@promo/utils/build-value-for-combobox'
 import { EMPTY_STRING } from '@promo/utils/generates-substrings-to-query-search'
 import { normalizeText } from '@promo/utils/normalize-text'

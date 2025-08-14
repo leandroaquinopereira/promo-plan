@@ -1,6 +1,6 @@
-import type { User } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { getFirebaseApps } from '@promo/lib/firebase/server'
+import type { User } from '@promo/types/firebase'
 import { notFound } from 'next/navigation'
 
 import { EditUserForm } from './components/form'

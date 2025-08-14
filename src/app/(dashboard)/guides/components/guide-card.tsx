@@ -1,4 +1,3 @@
-import type { Guide } from '@promo/types/firebase'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { Badge } from '@promo/components/ui/badge'
 import { buttonVariants } from '@promo/components/ui/button'
@@ -18,6 +17,7 @@ import {
 import { guideCategoryColors } from '@promo/constants/guide-category-color'
 import { guideCategoryMap } from '@promo/constants/guide-category-map'
 import { cn } from '@promo/lib/utils'
+import type { Guide } from '@promo/types/firebase'
 import { Calendar, Eye } from 'lucide-react'
 import Link from 'next/link'
 

@@ -1,8 +1,8 @@
 'use client'
 
-import type { TastingLog } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { firestore } from '@promo/lib/firebase/client'
+import type { TastingLog } from '@promo/types/firebase'
 import { convertFirebaseDate } from '@promo/utils/date-helpers'
 import { queries } from '@promo/utils/queries'
 import { useQuery } from '@tanstack/react-query'

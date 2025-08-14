@@ -2,7 +2,6 @@
 
 import { useRouter } from '@bprogress/next'
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { Product } from '@promo/types/firebase'
 import { Button } from '@promo/components/ui/button'
 import {
   Form,
@@ -22,6 +21,7 @@ import {
 } from '@promo/components/ui/select'
 import { Textarea } from '@promo/components/ui/textarea'
 import { ProductStatusEnum } from '@promo/enum/product-status'
+import type { Product } from '@promo/types/firebase'
 import { ArrowRight } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'

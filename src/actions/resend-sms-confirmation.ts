@@ -6,7 +6,6 @@ import {
   PublishCommandInput,
   SNSClient,
 } from '@aws-sdk/client-sns'
-import type { VerificationCode } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { ActionsSuccessCodes } from '@promo/constants/actions-success-codes'
 import { AwsSnsErrorCode } from '@promo/constants/aws-sns-error-code'
@@ -14,6 +13,7 @@ import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
 import { env } from '@promo/env'
 import { dayjsApi } from '@promo/lib/dayjs'
 import { getFirebaseApps } from '@promo/lib/firebase/server'
+import type { VerificationCode } from '@promo/types/firebase'
 import { generateVerificationCode } from '@promo/utils/generate-verification-code'
 import { firestore } from 'firebase-admin'
 import { z } from 'zod'

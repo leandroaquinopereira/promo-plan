@@ -1,7 +1,5 @@
 'use client'
 
-import type { PaginatedResponse } from '@promo/types/common'
-import type { Company, Product, Tasting, User } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { TableSkeleton } from '@promo/components/table-skeleton'
@@ -14,6 +12,8 @@ import {
 } from '@promo/components/ui/table'
 import { TastingStatusEnum } from '@promo/enum/tasting-status'
 import { firestore } from '@promo/lib/firebase/client'
+import type { PaginatedResponse } from '@promo/types/common'
+import type { Company, Product, Tasting, User } from '@promo/types/firebase'
 import { convertFirebaseDate } from '@promo/utils/date-helpers'
 import {
   and,

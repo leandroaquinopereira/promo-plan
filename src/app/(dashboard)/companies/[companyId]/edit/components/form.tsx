@@ -2,7 +2,6 @@
 
 import { useRouter } from '@bprogress/next'
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { Company } from '@promo/types/firebase'
 import { updateCompanyAction } from '@promo/actions/update-company'
 import { Button } from '@promo/components/ui/button'
 import {
@@ -23,6 +22,7 @@ import {
 } from '@promo/components/ui/select'
 import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
 import { CompanyStatusEnum } from '@promo/enum/company-status'
+import type { Company } from '@promo/types/firebase'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'

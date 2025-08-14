@@ -1,10 +1,10 @@
 'use server'
 
-import type { Tasting } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
 import { TastingStatusEnum } from '@promo/enum/tasting-status'
 import { serverActionOutputSchema } from '@promo/schemas/server-action-output'
+import type { Tasting } from '@promo/types/firebase'
 import { firestore } from 'firebase-admin'
 import z from 'zod'
 

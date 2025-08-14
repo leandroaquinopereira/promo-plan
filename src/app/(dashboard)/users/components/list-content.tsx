@@ -1,6 +1,5 @@
 'use client'
 
-import type { Role, User } from '@promo/types/firebase'
 import { deleteUserBatchAction } from '@promo/actions/delete-user-batch'
 import { disableUserBatchAction } from '@promo/actions/disable-user-batch'
 import { Collections } from '@promo/collections'
@@ -18,6 +17,7 @@ import { EventStatusEnum } from '@promo/enum/event-status'
 import { UserStatusEnum } from '@promo/enum/user-status'
 import { usersListEvents } from '@promo/events/users-list'
 import { firestore } from '@promo/lib/firebase/client'
+import type { Role, User } from '@promo/types/firebase'
 import { EMPTY_STRING } from '@promo/utils/generates-substrings-to-query-search'
 import { normalizeText } from '@promo/utils/normalize-text'
 import {

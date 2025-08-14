@@ -1,11 +1,11 @@
 'use server'
 
-import type { VerificationCode } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { ActionsSuccessCodes } from '@promo/constants/actions-success-codes'
 import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
 import { dayjsApi } from '@promo/lib/dayjs'
 import { getFirebaseApps } from '@promo/lib/firebase/server'
+import type { VerificationCode } from '@promo/types/firebase'
 import { hashPassword } from '@promo/utils/crypto'
 import { firestore } from 'firebase-admin'
 import { z } from 'zod'

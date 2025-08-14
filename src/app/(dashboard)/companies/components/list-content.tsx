@@ -1,6 +1,5 @@
 'use client'
 
-import type { Company } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { TableSkeleton } from '@promo/components/table-skeleton'
@@ -14,6 +13,7 @@ import {
 import { appConfiguration } from '@promo/constants/app-configuration'
 import { CompanyStatusEnum } from '@promo/enum/company-status'
 import { firestore } from '@promo/lib/firebase/client'
+import type { Company } from '@promo/types/firebase'
 import { EMPTY_STRING } from '@promo/utils/generates-substrings-to-query-search'
 import { normalizeText } from '@promo/utils/normalize-text'
 import {

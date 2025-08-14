@@ -1,9 +1,9 @@
-import type { Company, Product, Tasting, User } from '@promo/types/firebase'
 import { Collections } from '@promo/collections'
 import { CompanyStatusEnum } from '@promo/enum/company-status'
 import { ProductStatusEnum } from '@promo/enum/product-status'
 import { TastingStatusEnum } from '@promo/enum/tasting-status'
 import { getFirebaseApps } from '@promo/lib/firebase/server'
+import type { Company, Product, Tasting, User } from '@promo/types/firebase'
 import {
   convertFirebaseDate,
   convertFirebaseDateForForm,

@@ -1,5 +1,4 @@
 import { useRouter } from '@bprogress/next'
-import type { User, UserSituation } from '@promo/types/firebase'
 import { deleteUserAction } from '@promo/actions/delete-user'
 import { toggleUserSituationAction } from '@promo/actions/toggle-user-situation'
 import {
@@ -28,6 +27,7 @@ import { UserSituationEnum } from '@promo/enum/user-situation'
 import { UserStatusEnum } from '@promo/enum/user-status'
 import { dayjsApi } from '@promo/lib/dayjs'
 import { cn } from '@promo/lib/utils'
+import type { User, UserSituation } from '@promo/types/firebase'
 import { formatPhoneNumber } from '@promo/utils/format-phone-number'
 import { formatWhatsAppUrl } from '@promo/utils/format-whats-app-url'
 import { getUserInitials } from '@promo/utils/get-user-initials'
