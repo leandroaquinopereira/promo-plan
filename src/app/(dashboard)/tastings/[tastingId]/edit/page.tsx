@@ -151,6 +151,8 @@ export default async function RegisterTastingPage({
       updatedAt: convertFirebaseDate(tastingData.updatedAt),
       createdBy: tastingData.createdBy || '',
       updatedBy: tastingData.updatedBy || '',
+      row: tastingData.row || 0,
+      city: tastingData.city || '',
     }
 
     return (
