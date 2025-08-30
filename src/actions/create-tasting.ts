@@ -26,6 +26,9 @@ export const createTastingAction = authProcedure
       endDate: z.coerce.date({
         required_error: 'Data de término é obrigatória',
       }),
+      city: z.string({
+        required_error: 'Cidade é obrigatória',
+      }),
       company: z.string({
         required_error: 'Empresa é obrigatória',
       }),
@@ -43,6 +46,7 @@ export const createTastingAction = authProcedure
       promoter: promoterInput,
       startDate,
       endDate,
+      city,
       company: companyInput,
       products: productsInput,
       notes,
@@ -90,7 +94,6 @@ export const createTastingAction = authProcedure
       .get()
 
     const row = (total.data().count || 0) + 1
-
     const uid = generateId()
 
     await ctx.apps.firestore
@@ -108,6 +111,7 @@ export const createTastingAction = authProcedure
         startDate: firestore.Timestamp.fromDate(startDate),
         endDate: firestore.Timestamp.fromDate(endDate),
         notes: notes?.trim() || '',
+        city,
       })
 
     await ctx.apps.firestore.collection(Collections.TASTING_LOGS).add({
@@ -140,7 +144,12 @@ export const createTastingAction = authProcedure
 
       const tasks = buildTasks(uid, packageId)
       await Promise.all(
-        tasks.map((task) => packageRef.collection(Collections.TASKS).add(task)),
+        tasks.map((task) =>
+          packageRef
+            .collection(Collections.TASKS)
+            .doc(task.id.toString())
+            .set(task),
+        ),
       )
     }
 

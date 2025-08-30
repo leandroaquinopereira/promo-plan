@@ -2,6 +2,8 @@ import { Button } from '@promo/components/ui/button'
 import { CardDescription, CardHeader } from '@promo/components/ui/card'
 import { Trash2 } from 'lucide-react'
 
+import { DisableAllUsersSelected } from './disable-all-users-selected'
+
 type ListHeaderSectionProps = {
   totalUsers: number
   onDeleteSelected?: () => void
@@ -19,6 +21,7 @@ export function ListHeaderSection({
           <CardDescription>{totalUsers} usuários cadastrados</CardDescription>
         </div>
         <div className="flex items-center gap-2">
+          <DisableAllUsersSelected />
           <Button
             onClick={onDeleteSelected}
             variant="destructive"

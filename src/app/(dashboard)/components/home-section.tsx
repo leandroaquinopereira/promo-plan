@@ -1,5 +1,5 @@
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
-import { Button, buttonVariants } from '@promo/components/ui/button'
+import { buttonVariants } from '@promo/components/ui/button'
 import {
   Card,
   CardContent,
@@ -31,11 +31,9 @@ export async function HomeSection() {
               Olá, {session?.user.name}! 👋
             </CardTitle>
             <CardDescription>
-              Bem-vindo(a) ao seu painel de controle de degustações! Aqui você
-              encontra todas as ferramentas necessárias para gerenciar seus
-              eventos promocionais, acompanhar resultados e criar experiências
-              memoráveis para seus clientes. Organize suas degustações com
-              praticidade e eficiência.
+              Bem-vindo(a) ao seu painel de controle! Aqui você encontra todas
+              as ferramentas necessárias para gerenciar seus eventos, acompanhar
+              resultados e criar experiências memoráveis para seus clientes.
             </CardDescription>
           </CardHeader>
 

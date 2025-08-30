@@ -23,13 +23,6 @@ import {
   FormMessage,
 } from '@promo/components/ui/form'
 import { Input } from '@promo/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@promo/components/ui/select'
 import { Textarea } from '@promo/components/ui/textarea'
 import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
 import { BookPlus } from 'lucide-react'
@@ -41,13 +34,6 @@ import { useServerAction } from 'zsa-react'
 const schema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().min(1, 'Descrição é obrigatória'),
-  category: z.enum([
-    'checklist',
-    'photo_evidences',
-    'reports',
-    'best_practices',
-    'setup',
-  ]),
 })
 
 type Schema = z.infer<typeof schema>
@@ -60,10 +46,9 @@ export function GuideModalCreation() {
 
   const router = useRouter()
 
-  async function handleCreateGuide({ category, description, title }: Schema) {
+  async function handleCreateGuide({ description, title }: Schema) {
     try {
       const [result, resultError] = await execute({
-        category,
         description,
         title,
       })
@@ -156,41 +141,6 @@ export function GuideModalCreation() {
                       placeholder="Insira o título do guide"
                       disabled={form.formState.isSubmitting}
                     />
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição</FormLabel>
-                  <FormControl>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      disabled={form.formState.isSubmitting}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        <SelectItem value="checklist">Checklist</SelectItem>
-                        <SelectItem value="photo_evidences">
-                          Evidências Fotográficas
-                        </SelectItem>
-                        <SelectItem value="reports">Relatórios</SelectItem>
-                        <SelectItem value="best_practices">
-                          Melhores Práticas
-                        </SelectItem>
-                        <SelectItem value="setup">Configuração</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </FormControl>
 
                   <FormMessage />

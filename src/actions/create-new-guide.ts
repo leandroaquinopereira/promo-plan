@@ -18,13 +18,6 @@ export const createNewGuide = authProcedure
     z.object({
       title: z.string().min(1, 'Título é obrigatório'),
       description: z.string().min(1, 'Descrição é obrigatória'),
-      category: z.enum([
-        'checklist',
-        'photo_evidences',
-        'reports',
-        'best_practices',
-        'setup',
-      ]),
     }),
   )
   .output(
@@ -34,13 +27,12 @@ export const createNewGuide = authProcedure
     }),
   )
   .handler(async ({ input, ctx }) => {
-    const { title, description, category } = input
+    const { title, description } = input
     const substrings = generateSubstrings(title)
 
     const guide = await ctx.apps.firestore.collection(Collections.GUIDES).add({
       title,
       description,
-      category,
       createdAt: firestore.Timestamp.now(),
       updatedAt: firestore.Timestamp.now(),
       createdBy: ctx.session.user.id,

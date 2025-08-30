@@ -14,6 +14,7 @@ import {
   FileSliders,
   Users,
 } from 'lucide-react'
+import Link from 'next/link'
 
 export async function QuickActionsSection() {
   return (
@@ -32,46 +33,54 @@ export async function QuickActionsSection() {
         </CardHeader>
 
         <div className="flex flex-col gap-2 mt-4">
-          <Button variant="outline" className="w-full">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2 grow">
-                <CalendarPlus className="size-4" />
-                Nova degustação
-              </div>
+          <Link href="/tastings/register">
+            <Button variant="outline" className="w-full">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2 grow">
+                  <CalendarPlus className="size-4" />
+                  Nova degustação
+                </div>
 
-              <ArrowRight className="size-4 ml-auto" />
-            </div>
-          </Button>
-          <Button variant="outline" className="w-full">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2 grow">
-                <Users className="size-4" />
-                Gerenciar freelancers
+                <ArrowRight className="size-4 ml-auto" />
               </div>
+            </Button>
+          </Link>
+          <Link href="/users/register">
+            <Button variant="outline" className="w-full">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2 grow">
+                  <Users className="size-4" />
+                  Gerenciar Usuários
+                </div>
 
-              <ArrowRight className="size-4 ml-auto" />
-            </div>
-          </Button>
-          <Button variant="outline" className="w-full">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2 grow">
-                <CalendarCheck className="size-4" />
-                Degustações ativas
+                <ArrowRight className="size-4 ml-auto" />
               </div>
+            </Button>
+          </Link>
+          <Link href="/tastings?status=active">
+            <Button variant="outline" className="w-full">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2 grow">
+                  <CalendarCheck className="size-4" />
+                  Degustações ativas
+                </div>
 
-              <ArrowRight className="size-4 ml-auto" />
-            </div>
-          </Button>
-          <Button variant="outline" className="w-full">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2 grow">
-                <FileSliders className="size-4" />
-                Relatórios
+                <ArrowRight className="size-4 ml-auto" />
               </div>
+            </Button>
+          </Link>
+          <Link href="/tastings/reports">
+            <Button variant="outline" className="w-full">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2 grow">
+                  <FileSliders className="size-4" />
+                  Relatórios
+                </div>
 
-              <ArrowRight className="size-4 ml-auto" />
-            </div>
-          </Button>
+                <ArrowRight className="size-4 ml-auto" />
+              </div>
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>

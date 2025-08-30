@@ -103,6 +103,21 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
+              <SidebarMenuItem key="task-packages">
+                <SidebarMenuButton
+                  asChild
+                  isActive={
+                    (pathname === '/tasks' || pathname.startsWith('/tasks')) &&
+                    pathname !== '/'
+                  }
+                >
+                  <Link href="/tasks">
+                    <Package />
+                    <span>Tarefas</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
               <SidebarMenuItem key="tastings">
                 <SidebarMenuButton
                   asChild

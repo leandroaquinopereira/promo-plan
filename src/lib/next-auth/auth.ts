@@ -1,5 +1,6 @@
 import { FirestoreAdapter } from '@auth/firebase-adapter'
 import { Collections } from '@promo/collections'
+import { UserSituationEnum } from '@promo/enum/user-situation'
 import { env } from '@promo/env'
 import { comparePassword } from '@promo/utils/crypto'
 import NextAuth, { CredentialsSignin } from 'next-auth'
@@ -61,7 +62,7 @@ export const { signIn, signOut, auth, handlers } = NextAuth({
           user?.password,
         )
 
-        if (isCorrectPassword) {
+        if (isCorrectPassword && user?.situation === UserSituationEnum.ACTIVE) {
           return {
             id: userRef.id,
             phoneNumber: userRef.id,

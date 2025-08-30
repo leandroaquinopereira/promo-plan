@@ -1,32 +1,58 @@
+import { Collections } from '@promo/collections'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { Card, CardContent } from '@promo/components/ui/card'
 import { Muted } from '@promo/components/ui/typography'
+import { TastingStatusEnum } from '@promo/enum/tasting-status'
+import { UserSituationEnum } from '@promo/enum/user-situation'
+import { getFirebaseApps } from '@promo/lib/firebase/server'
 import { cn } from '@promo/lib/utils'
 import { CalendarCheck, CalendarClock, FileSliders, Users } from 'lucide-react'
 
 export async function InfoSection() {
+  const apps = await getFirebaseApps()
+  const tastings = await apps?.firestore
+    .collection(Collections.TASTINGS)
+    .where('status', '==', TastingStatusEnum.ACTIVE)
+    .get()
+
+  const tastingsCompleted = await apps?.firestore
+    .collection(Collections.TASTINGS)
+    .where('status', '==', TastingStatusEnum.COMPLETED)
+    .get()
+
+  const roleRef = await apps?.firestore
+    .collection(Collections.ROLES)
+    .where('slug', '==', 'freelancer')
+    .get()
+
+  const users = await apps?.firestore
+    .collection(Collections.USERS)
+    .where('role', '==', roleRef?.docs[0].ref || '')
+    .where('situation', '==', UserSituationEnum.ACTIVE)
+    .get()
+
   const infoCards = [
     {
       title: 'Degustações Ativas',
-      count: '8',
+      count: tastings?.docs.length || 0,
       icon: CalendarClock,
       color: 'text-orange-600',
     },
     {
       title: 'Freelancers disponíveis',
-      count: '12',
+      count: users?.docs.length || 0,
       icon: Users,
       color: 'text-blue-600',
     },
     {
       title: 'Relatórios pendentes',
-      count: '12',
+      count: '0',
       icon: FileSliders,
       color: 'text-green-600',
     },
     {
       title: 'Degustações concluídas',
-      count: '12',
+      count: tastingsCompleted?.docs.length || 0,
       icon: CalendarCheck,
       color: 'text-purple-600',
     },

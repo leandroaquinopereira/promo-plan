@@ -275,9 +275,9 @@ export function ListTableRow({
       </TableCell>
       <TableCell>
         <div className="flex flex-col">
-          <div className="font-medium">#{tasting.id}</div>
+          <div className="font-medium">#{tasting.row}</div>
           <div className="text-xs text-muted-foreground">
-            Processo {tasting.id}
+            Processo {tasting.row}
           </div>
         </div>
       </TableCell>
@@ -307,10 +307,7 @@ export function ListTableRow({
         <div className="flex items-center gap-1">
           <MapPin className="size-3 text-muted-foreground" />
           <div className="text-sm">
-            <div>{(tasting.promoter as any).city}</div>
-            <div className="text-xs text-muted-foreground">
-              {(tasting.promoter as any).state}
-            </div>
+            <div>{tasting.city || '-'}</div>
           </div>
         </div>
       </TableCell>

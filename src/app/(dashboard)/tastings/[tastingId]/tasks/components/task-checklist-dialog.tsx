@@ -121,15 +121,7 @@ export function TaskChecklistDialog({
     await onSubmit?.(materials, uploadedPhotos, observations)
   }
 
-  useEffect(() => {
-    if (task.payload?.photos) {
-      setPhotos(task.payload.photos.map((photo: any) => photo.url))
-    }
-
-    if (task.payload?.materials) {
-      setMaterials(task.payload.materials)
-    }
-  }, [task.payload])
+  const doesTaskPayloadHaveValues = Object.keys(task.payload ?? {}).length > 0
 
   return (
     <Dialog
@@ -138,6 +130,21 @@ export function TaskChecklistDialog({
         if (!isOpened) {
           setMaterials('')
           setPhotos([])
+          setObservations('')
+        }
+
+        if (isOpened) {
+          if (task.payload?.photos) {
+            setPhotos(task.payload.photos.map((photo: any) => photo.url))
+          }
+
+          if (task.payload?.materials) {
+            setMaterials(task.payload.materials)
+          }
+
+          if (task.payload?.observations) {
+            setObservations(task.payload.observations)
+          }
         }
 
         setIsDialogOpen(isOpened)
@@ -170,7 +177,7 @@ export function TaskChecklistDialog({
               className="min-h-40"
               rows={4}
               value={materials}
-              disabled={!!task.payload}
+              disabled={doesTaskPayloadHaveValues}
               onChange={(e) => setMaterials(e.target.value)}
             />
           </div>
@@ -204,7 +211,7 @@ export function TaskChecklistDialog({
                       <span>Abrir foto</span>
                       <ExternalLink className="size-4" />
                     </Button>
-                    {task.payload?.photos === undefined && (
+                    {!doesTaskPayloadHaveValues && (
                       <Button
                         variant="outline"
                         onClick={() => {
@@ -239,7 +246,7 @@ export function TaskChecklistDialog({
                 size="sm"
                 variant="outline"
                 className="w-full"
-                disabled={!!task.payload}
+                disabled={doesTaskPayloadHaveValues}
               >
                 <CameraIcon className="size-4 mr-1" />
                 Adicionar foto
@@ -254,7 +261,7 @@ export function TaskChecklistDialog({
               className="min-h-40"
               rows={4}
               value={observations}
-              disabled={!!task.payload}
+              disabled={doesTaskPayloadHaveValues}
               onChange={(e) => setObservations(e.target.value)}
             />
           </div>
@@ -263,11 +270,11 @@ export function TaskChecklistDialog({
         <DialogFooter>
           <DialogClose asChild>
             <Button size="sm" variant="outline">
-              {!task.payload ? 'Cancelar' : 'Fechar'}
+              {!doesTaskPayloadHaveValues ? 'Cancelar' : 'Fechar'}
             </Button>
           </DialogClose>
 
-          {!task.payload && (
+          {!doesTaskPayloadHaveValues && (
             <Button size="sm" variant="default" onClick={handleSubmit}>
               Concluir
             </Button>

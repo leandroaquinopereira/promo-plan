@@ -92,7 +92,10 @@ export default async function TastingTasksPage({
       .collection(Collections.TASK_PACKAGES)
       .doc(`package_${tastingId}_day_${nowInStr}`)
 
-    const tasks = await packageRef.collection(Collections.TASKS).get()
+    const tasks = await packageRef
+      .collection(Collections.TASKS)
+      .orderBy('id', 'asc')
+      .get()
     const tasksData = tasks.docs.map((doc) => {
       const data = doc.data()
       if (!data) {

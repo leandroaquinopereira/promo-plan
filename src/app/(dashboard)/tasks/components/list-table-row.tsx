@@ -3,10 +3,9 @@
 import { useRouter } from '@bprogress/next'
 import { completeTaskAction } from '@promo/actions/complete-task'
 import { Camera } from '@promo/components/camera'
-import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { Badge } from '@promo/components/ui/badge'
 import { Button } from '@promo/components/ui/button'
-import { Card, CardContent } from '@promo/components/ui/card'
+import { TableCell, TableRow } from '@promo/components/ui/table'
 import { useAlertDialogProgress } from '@promo/context/alert-dialog-progress'
 import { TaskType } from '@promo/enum/tasks'
 import {
@@ -15,22 +14,92 @@ import {
 } from '@promo/lib/firebase/storage.client'
 import { cn } from '@promo/lib/utils'
 import type { Task } from '@promo/types/models/task'
-import { CheckCircle, ExternalLink } from 'lucide-react'
+import {
+  CameraIcon,
+  CheckCircle,
+  ClipboardList,
+  Clock,
+  ExternalLink,
+  Eye,
+  FileText,
+  Lightbulb,
+  Settings,
+} from 'lucide-react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { useServerAction } from 'zsa-react'
 
-import { TaskChecklistDialog } from './task-checklist-dialog'
+import { TaskChecklistDialog } from '../../tastings/[tastingId]/tasks/components/task-checklist-dialog'
 
-interface TaskCardProps {
-  task: Task
-  index: number
-  canStartTask?: (task: Task) => boolean
+interface TaskWithTasting extends Task {
+  tastingName?: string
+  companyName?: string
+  tastingId?: string
 }
 
-export function TaskCard({ task, index, canStartTask }: TaskCardProps) {
+type ListTableRowProps = {
+  data: TaskWithTasting
+  canStartTask?: (task: Task) => boolean
+  isSubRow?: boolean
+}
+
+export function ListTableRow({
+  data: task,
+  canStartTask,
+  isSubRow,
+}: ListTableRowProps) {
   const alertDialogProgress = useAlertDialogProgress()
   const { execute: completeTask } = useServerAction(completeTaskAction)
   const router = useRouter()
+
+  function getTaskTypeIcon(type: TaskType) {
+    switch (type) {
+      case TaskType.SETUP:
+        return <Settings className="size-4" />
+      case TaskType.CHECKLIST:
+        return <ClipboardList className="size-4" />
+      case TaskType.PHOTO_EVIDENCES:
+        return <CameraIcon className="size-4" />
+      case TaskType.REPORTS:
+        return <FileText className="size-4" />
+      case TaskType.BEST_PRACTICES:
+        return <Lightbulb className="size-4" />
+      default:
+        return <Settings className="size-4" />
+    }
+  }
+
+  function getTaskTypeName(type: TaskType) {
+    switch (type) {
+      case TaskType.SETUP:
+        return 'Configuração'
+      case TaskType.CHECKLIST:
+        return 'Checklist'
+      case TaskType.PHOTO_EVIDENCES:
+        return 'Evidências Fotográficas'
+      case TaskType.REPORTS:
+        return 'Relatórios'
+      case TaskType.BEST_PRACTICES:
+        return 'Boas Práticas'
+      default:
+        return 'Desconhecido'
+    }
+  }
+
+  function getTaskStatus() {
+    if (task.completedAt) {
+      return {
+        label: 'Concluída',
+        variant: 'default' as const,
+        icon: <CheckCircle className="size-3" />,
+      }
+    }
+    return {
+      label: 'Pendente',
+      variant: 'secondary' as const,
+      icon: <Clock className="size-3" />,
+    }
+  }
 
   async function handleTakePhoto(photoUrlBase64: string) {
     const storage = new FirebaseStorageClient()
@@ -191,93 +260,120 @@ export function TaskCard({ task, index, canStartTask }: TaskCardProps) {
     router.refresh()
   }
 
+  const status = getTaskStatus()
+
   return (
-    <MotionDiv
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
+    <TableRow
+      className={cn(
+        task.completedAt && 'opacity-75',
+        isSubRow && 'bg-muted/30 border-l-4 border-l-primary/20',
+      )}
     >
-      <Card className={cn('transition-all duration-200 p-0')}>
-        <CardContent className="p-4">
-          <div className="flex items-start gap-4">
-            {/* Task Content */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-4 mb-2">
-                <div className="flex-1">
-                  <h3 className="font-medium text-base mb-1">{task.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {task.title}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {task.completedAt && (
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        'text-xs',
-                        'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800',
-                      )}
-                    >
-                      Concluída
-                    </Badge>
-                  )}
-                </div>
-              </div>
+      <TableCell className={cn(isSubRow && 'pl-12')}>
+        <div className="font-mono text-sm font-medium">
+          #{task.id.toString().padStart(3, '0')}
+        </div>
+      </TableCell>
 
-              {/* Actions */}
-              <div className="flex items-center gap-2 mt-3">
-                {task.type === TaskType.SETUP && !task.completedAt && (
-                  <Camera
-                    onTakePhoto={handleTakePhoto}
-                    title="Tirar Foto"
-                    description="Quando você tirar a foto, o sistema irá salvar a foto e você poderá ver a foto na tarefa."
-                  >
-                    <Button
-                      size="sm"
-                      variant="default"
-                      disabled={!canStartTask?.(task)}
-                    >
-                      Tirar Foto
-                    </Button>
-                  </Camera>
-                )}
-                {task.type !== TaskType.SETUP && !task.completedAt && (
-                  <TaskChecklistDialog
-                    canStartTask={() => canStartTask?.(task) ?? true}
-                    onSubmit={handleSubmitChecklist}
-                    task={task}
-                  />
-                )}
+      <TableCell>
+        <div className="font-medium">{task.title}</div>
+      </TableCell>
 
-                {task.completedAt && task.type === TaskType.SETUP && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleDownloadPhoto}
-                  >
-                    <ExternalLink className="size-4 mr-1" />
-                    Visualizar foto
-                  </Button>
-                )}
+      <TableCell>
+        <div className="flex items-center gap-2">
+          {getTaskTypeIcon(task.type)}
+          <span className="text-sm">{getTaskTypeName(task.type)}</span>
+        </div>
+      </TableCell>
 
-                {task.type !== TaskType.SETUP && task.completedAt && (
-                  <TaskChecklistDialog
-                    canStartTask={() => canStartTask?.(task) ?? true}
-                    onSubmit={handleSubmitChecklist}
-                    task={task}
-                    trigger={
-                      <Button size="sm" variant="outline">
-                        <CheckCircle className="size-4 mr-1" />
-                        Visualizar checklist
-                      </Button>
-                    }
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </MotionDiv>
+      <TableCell>
+        <Badge
+          variant={status.variant}
+          className="flex items-center gap-1 w-fit"
+        >
+          {status.icon}
+          {status.label}
+        </Badge>
+      </TableCell>
+
+      <TableCell>
+        <div className="flex flex-col gap-1">
+          <Link
+            href={`/tastings/${task.tastingId}/detail`}
+            className="text-sm font-medium underline hover:underline text-blue-300 dark:text-blue-500 hover:text-blue-400 dark:hover:text-blue-600"
+          >
+            {task.tastingName}
+          </Link>
+        </div>
+      </TableCell>
+
+      <TableCell>
+        <div className="text-sm text-muted-foreground">
+          {task.companyName || '-'}
+        </div>
+      </TableCell>
+
+      <TableCell>
+        <div className="flex items-center gap-2">
+          {task.type === TaskType.SETUP && !task.completedAt && (
+            <Camera
+              onTakePhoto={handleTakePhoto}
+              title="Tirar Foto"
+              description="Quando você tirar a foto, o sistema irá salvar a foto e você poderá ver a foto na tarefa."
+            >
+              <Button
+                size="icon"
+                variant="secondary"
+                disabled={!canStartTask?.(task)}
+              >
+                <CameraIcon className="size-4" />
+              </Button>
+            </Camera>
+          )}
+
+          {task.type !== TaskType.SETUP && !task.completedAt && (
+            <TaskChecklistDialog
+              canStartTask={() => {
+                return canStartTask?.(task) ?? true
+              }}
+              onSubmit={handleSubmitChecklist}
+              task={task}
+              trigger={
+                <Button
+                  disabled={!canStartTask?.(task)}
+                  size="icon"
+                  variant="outline"
+                >
+                  <CheckCircle className="size-4" />
+                </Button>
+              }
+            />
+          )}
+
+          {task.completedAt && task.type === TaskType.SETUP && (
+            <Button size="icon" variant="outline" onClick={handleDownloadPhoto}>
+              <ExternalLink className="size-4" />
+            </Button>
+          )}
+
+          {task.type !== TaskType.SETUP && task.completedAt && (
+            <TaskChecklistDialog
+              canStartTask={() => canStartTask?.(task) ?? true}
+              onSubmit={handleSubmitChecklist}
+              task={task}
+              trigger={
+                <Button
+                  disabled={!canStartTask?.(task)}
+                  size="icon"
+                  variant="outline"
+                >
+                  <Eye className="size-4" />
+                </Button>
+              }
+            />
+          )}
+        </div>
+      </TableCell>
+    </TableRow>
   )
 }

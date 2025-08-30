@@ -3,7 +3,8 @@
 import { Collections } from '@promo/collections'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
 import { TableSkeleton } from '@promo/components/table-skeleton'
-import { Card, CardContent } from '@promo/components/ui/card'
+import { Button } from '@promo/components/ui/button'
+import { Card, CardContent, CardHeader } from '@promo/components/ui/card'
 import {
   Table,
   TableBody,
@@ -28,7 +29,8 @@ import {
   type Unsubscribe,
   where,
 } from 'firebase/firestore'
-import { Utensils, Wine } from 'lucide-react'
+import { Plus, Utensils, Wine } from 'lucide-react'
+import Link from 'next/link'
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs'
 import { useEffect, useRef, useState } from 'react'
 
@@ -306,6 +308,14 @@ export function ListContent() {
     >
       <Card className="px-4">
         <CardContent className="p-0">
+          <CardHeader className="p-0 justify-end w-full sm:w-auto">
+            <Link href="/tastings/register" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto" variant="default">
+                <Plus className="size-4" />
+                Nova Degustação
+              </Button>
+            </Link>
+          </CardHeader>
           <Table>
             <ListTableHeader
               isAllSelected={

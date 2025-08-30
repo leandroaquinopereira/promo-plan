@@ -31,7 +31,7 @@ export default async function GuideEditorPage({
 
   return (
     <div className="bg-background p-6 grow flex flex-col">
-      <div className="max-w-7xl mx-auto flex flex-col grow w-full">
+      <div className="max-w-7xl mx-auto flex flex-col grow w-full @container">
         <Editor
           guide={{
             category: guideData?.category || 'checklist',

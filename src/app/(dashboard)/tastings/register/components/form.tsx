@@ -193,6 +193,7 @@ export function RegisterTastingForm() {
     endDate,
     notes,
     promoter,
+    city,
   }: Schema) {
     try {
       const [result, resultError] = await execute({
@@ -202,6 +203,7 @@ export function RegisterTastingForm() {
         endDate,
         notes,
         promoter,
+        city,
       })
 
       if (resultError) {
@@ -242,197 +244,192 @@ export function RegisterTastingForm() {
         onSubmit={form.handleSubmit(handleRegisterTasting)}
         className="space-y-4 @container"
       >
-        <div className="grid grid-cols-1 @md:grid-cols-2 gap-4 w-full place-content-start">
-          <FormField
-            control={form.control}
-            name="promoter"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Promotor</FormLabel>
-                <FormControl>
-                  <Combobox
-                    queryFn={fetchPromoters}
-                    value={field.value}
-                    onChange={(promoterId: string, raw?: any) => {
-                      console.log(raw, promoterId)
+        <FormField
+          control={form.control}
+          name="promoter"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Promotor</FormLabel>
+              <FormControl>
+                <Combobox
+                  queryFn={fetchPromoters}
+                  value={field.value}
+                  onChange={(promoterId: string) => {
+                    field.onChange(promoterId)
+                    // if (raw) {
+                    //   form.setValue('city', raw.city)
+                    //   form.clearErrors('city')
+                    // } else {
+                    //   form.resetField('city', {
+                    //     defaultValue: '',
+                    //   })
 
-                      field.onChange(promoterId)
-                      if (raw) {
-                        form.setValue('city', raw.city)
-                        form.clearErrors('city')
-                      } else {
-                        form.resetField('city', {
-                          defaultValue: '',
-                        })
+                    //   form.setError('city', {
+                    //     message: 'Cidade é obrigatória',
+                    //   })
+                    // }
+                  }}
+                  placeholder="Selecione um promotor"
+                  toasts={{
+                    loadingError: 'Erro ao buscar promotores(as)',
+                  }}
+                  loadingText="Buscando promotores(as)..."
+                  entity="promoter"
+                />
+              </FormControl>
 
-                        form.setError('city', {
-                          message: 'Cidade é obrigatória',
-                        })
-                      }
-                    }}
-                    placeholder="Selecione um promotor"
-                    toasts={{
-                      loadingError: 'Erro ao buscar promotores(as)',
-                    }}
-                    loadingText="Buscando promotores(as)..."
-                    entity="promoter"
-                  />
-                </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="city"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cidade</FormLabel>
+              <FormControl>
+                <Input placeholder="Cidade" {...field} />
+              </FormControl>
 
-          <FormField
-            control={form.control}
-            name="city"
-            disabled
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Cidade</FormLabel>
-                <FormControl>
-                  <Input placeholder="Cidade" {...field} />
-                </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="company"
+          render={({ field }) => (
+            <FormItem className="">
+              <FormLabel>Empresa</FormLabel>
+              <FormControl>
+                <Combobox
+                  queryFn={fetchCompanies}
+                  value={field.value}
+                  onChange={(companyId: string) => {
+                    field.onChange(companyId)
+                  }}
+                  placeholder="Selecione uma empresa"
+                  toasts={{
+                    loadingError: 'Erro ao buscar empresas',
+                  }}
+                  loadingText="Buscando empresas..."
+                  entity="company"
+                />
+              </FormControl>
 
-          <FormField
-            control={form.control}
-            name="company"
-            render={({ field }) => (
-              <FormItem className="">
-                <FormLabel>Empresa</FormLabel>
-                <FormControl>
-                  <Combobox
-                    queryFn={fetchCompanies}
-                    value={field.value}
-                    onChange={(companyId: string) => {
-                      field.onChange(companyId)
-                    }}
-                    placeholder="Selecione uma empresa"
-                    toasts={{
-                      loadingError: 'Erro ao buscar empresas',
-                    }}
-                    loadingText="Buscando empresas..."
-                    entity="company"
-                  />
-                </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="products"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Produtos</FormLabel>
+              <FormControl>
+                <MultipleSelector
+                  commandProps={{
+                    label: 'Selecione os produtos',
+                  }}
+                  emptyIndicator={
+                    <p className="text-center text-sm">
+                      Nenhum produto encontrado
+                    </p>
+                  }
+                  loadingIndicator={
+                    <div className="flex items-center w-full justify-center py-12 gap-2">
+                      <Loader className="animate-spin size-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        Buscando produtos...
+                      </span>
+                    </div>
+                  }
+                  value={field.value?.map((v) => ({
+                    value: v,
+                    label: capitalizeTextSplit(
+                      v.split(buildSeparator)[0] || '',
+                    ),
+                  }))}
+                  triggerSearchOnFocus
+                  placeholder="Selecione os produtos"
+                  onSearch={fetchProducts}
+                  onChange={(value) => {
+                    field.onChange(value.map((v) => v.value))
+                  }}
+                />
+              </FormControl>
 
-          <FormField
-            control={form.control}
-            name="products"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Produtos</FormLabel>
-                <FormControl>
-                  <MultipleSelector
-                    commandProps={{
-                      label: 'Selecione os produtos',
-                    }}
-                    emptyIndicator={
-                      <p className="text-center text-sm">
-                        Nenhum produto encontrado
-                      </p>
-                    }
-                    loadingIndicator={
-                      <div className="flex items-center w-full justify-center py-12 gap-2">
-                        <Loader className="animate-spin size-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
-                          Buscando produtos...
-                        </span>
-                      </div>
-                    }
-                    value={field.value?.map((v) => ({
-                      value: v,
-                      label: capitalizeTextSplit(
-                        v.split(buildSeparator)[0] || '',
-                      ),
-                    }))}
-                    triggerSearchOnFocus
-                    placeholder="Selecione os produtos"
-                    onSearch={fetchProducts}
-                    onChange={(value) => {
-                      field.onChange(value.map((v) => v.value))
-                    }}
-                  />
-                </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="startDate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Data de início</FormLabel>
 
-          <FormField
-            control={form.control}
-            name="startDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data de início</FormLabel>
+              <FormControl>
+                <DatePicker
+                  value={field.value}
+                  onChange={(date) => {
+                    field.onChange(date)
+                  }}
+                />
+              </FormControl>
 
-                <FormControl>
-                  <DatePicker
-                    value={field.value}
-                    onChange={(date) => {
-                      field.onChange(date)
-                    }}
-                  />
-                </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="endDate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Data de término</FormLabel>
 
-          <FormField
-            control={form.control}
-            name="endDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data de término</FormLabel>
+              <FormControl>
+                <DatePicker
+                  value={field.value}
+                  onChange={(date) => {
+                    field.onChange(date)
+                  }}
+                />
+              </FormControl>
 
-                <FormControl>
-                  <DatePicker
-                    value={field.value}
-                    onChange={(date) => {
-                      field.onChange(date)
-                    }}
-                  />
-                </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem className="col-span-2">
+              <FormLabel>Observações (Opcional)</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="e.g. 'Promotor deve ser mais atencioso com o cliente'"
+                  {...field}
+                  maxLength={200}
+                  rows={4}
+                />
+              </FormControl>
 
-          <FormField
-            control={form.control}
-            name="notes"
-            render={({ field }) => (
-              <FormItem className="col-span-2">
-                <FormLabel>Observações (Opcional)</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="e.g. 'Promotor deve ser mais atencioso com o cliente'"
-                    {...field}
-                    maxLength={200}
-                    rows={4}
-                  />
-                </FormControl>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <Button
           type="submit"

@@ -2,6 +2,7 @@
 
 import { useDebouncedCallback } from '@mantine/hooks'
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
+import { Button } from '@promo/components/ui/button'
 import {
   Card,
   CardContent,
@@ -24,7 +25,7 @@ import {
   TooltipTrigger,
 } from '@promo/components/ui/tooltip'
 import { brazilianStates } from '@promo/constants/brazilian-states'
-import { Info, Search } from 'lucide-react'
+import { BrushCleaning, Info, Search } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 
 export function FilterSection() {
@@ -54,6 +55,14 @@ export function FilterSection() {
 
   const debouncedSetSearch = useDebouncedCallback(handleSetSearch, 500)
 
+  function handleClearFilters() {
+    setSearch('')
+    setState('all')
+    setPermission('all')
+    setStatus('all')
+    setSituation('active')
+  }
+
   return (
     <MotionDiv
       initial={{ opacity: 0, y: 20 }}
@@ -61,12 +70,18 @@ export function FilterSection() {
       transition={{ duration: 0.5, delay: 0.2 }}
     >
       <Card className="p-4">
-        <CardHeader className="p-0">
-          <CardTitle>Filtros</CardTitle>
-          <CardDescription className="max-w-96">
-            Utilize os filtros abaixo para refinar sua busca por usuários de
-            forma rápida e eficiente.
-          </CardDescription>
+        <CardHeader className="p-0 flex gap-3 flex-col sm:flex-row items-start justify-between">
+          <div>
+            <CardTitle>Filtros</CardTitle>
+            <CardDescription className="max-w-96">
+              Utilize os filtros abaixo para refinar sua busca por usuários de
+              forma rápida e eficiente.
+            </CardDescription>
+          </div>
+          <Button className="w-full sm:w-auto" onClick={handleClearFilters}>
+            <BrushCleaning className="size-4" />
+            Limpar Filtros
+          </Button>
         </CardHeader>
         <CardContent className="p-0 @container">
           <div className="grid gap-4 @md:grid-cols-2 @lg:grid-cols-3">

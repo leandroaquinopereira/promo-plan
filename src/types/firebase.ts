@@ -106,6 +106,8 @@ export type ProductTasting = Product | DocumentReference
 export interface Tasting {
   id: number
   promoter: User | DocumentReference
+  row: number
+  city: string
   startDate: Timestamp | Date
   endDate: Timestamp | Date
   company: Company | DocumentReference
