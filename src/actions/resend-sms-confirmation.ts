@@ -1,23 +1,16 @@
 'use server'
 
-import {
-  KMSThrottlingException,
-  PublishCommand,
-  PublishCommandInput,
-  SNSClient,
-} from '@aws-sdk/client-sns'
 import { Collections } from '@promo/collections'
 import { ActionsSuccessCodes } from '@promo/constants/actions-success-codes'
 import { AwsSnsErrorCode } from '@promo/constants/aws-sns-error-code'
 import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
 import { env } from '@promo/env'
 import { dayjsApi } from '@promo/lib/dayjs'
-import { getFirebaseApps } from '@promo/lib/firebase/server'
 import type { VerificationCode } from '@promo/types/firebase'
 import { generateVerificationCode } from '@promo/utils/generate-verification-code'
 import { firestore } from 'firebase-admin'
+import twilio from 'twilio'
 import { z } from 'zod'
-import { createServerAction } from 'zsa'
 
 import { publicProcedure } from './procedures/public-procedure'
 
@@ -91,41 +84,27 @@ export const resendSMSConfirmation = publicProcedure
 
     const newCode = await generateVerificationCode(verificationCodeData.phone)
 
-    const snsClient = new SNSClient({
-      region: env.AWS_REGION,
-      credentials: {
-        accessKeyId: env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-      },
-    })
+    const twilioClient = twilio(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN)
+    const message = `Olá! Seu código de verificação é: ${newCode}. Use este código para redefinir sua senha.`
 
-    const commandPayload: PublishCommandInput = {
-      Message: `Olá! Seu código de verificação é: ${newCode}. Use este código para redefinir sua senha.`,
-      PhoneNumber: verificationCodeData.phone,
-      Subject: 'Código de verificação',
-      MessageAttributes: {
-        'AWS.SNS.SMS.SMSType': {
-          DataType: 'String',
-          StringValue: 'Transactional',
-        },
-      },
-    }
-
-    const command = new PublishCommand(commandPayload)
     try {
-      const result = await snsClient.send(command)
+      const result = await twilioClient.messages.create({
+        to: verificationCodeData.phone,
+        from: env.TWILIO_PHONE_NUMBER,
+        body: message,
+      })
 
       await verificationCodeInFirebase.ref.update({
         ...verificationCodeData,
         code: newCode,
         sentAt: firestore.Timestamp.now(),
         smsSnsResponse: {
-          MessageId: result.MessageId,
-          Message: commandPayload.Message,
-          PhoneNumber: commandPayload.PhoneNumber,
-          Subject: commandPayload.Subject,
-          MessageAttributes: commandPayload.MessageAttributes,
-          metadata: JSON.stringify(result.$metadata),
+          MessageId: result.sid,
+          Message: message,
+          PhoneNumber: verificationCodeData.phone,
+          Subject: 'Código de verificação',
+          MessageAttributes: {},
+          metadata: JSON.stringify(result.toJSON()),
         },
       } as VerificationCode)
 
@@ -136,38 +115,21 @@ export const resendSMSConfirmation = publicProcedure
         codeId: verificationCodeInFirebase.id,
       }
     } catch (error) {
-      if (error instanceof KMSThrottlingException) {
-        return {
-          success: false,
-          error: {
-            message: 'Rate limit exceeded for AWS KMS operations',
-            code: AwsSnsErrorCode.KMS_THROTTLING_EXCEPTION,
-          },
-        }
-      }
-
       if (error instanceof Error) {
-        if (error.name === 'QuotaExceededException') {
+        if (
+          error.message.includes('The number') &&
+          error.message.includes('is unverified')
+        ) {
           return {
             success: false,
             error: {
-              message: 'SMS sending quota exceeded',
-              code: AwsSnsErrorCode.QUOTA_EXCEEDED,
+              message: 'Phone number is not verified with Twilio',
+              code: AwsSnsErrorCode.INVALID_PARAMETER,
             },
           }
         }
 
-        if (error.name === 'ThrottlingException') {
-          return {
-            success: false,
-            error: {
-              message: 'Too many SMS requests, please try again later',
-              code: AwsSnsErrorCode.THROTTLING_EXCEPTION,
-            },
-          }
-        }
-
-        if (error.name === 'InvalidParameterException') {
+        if (error.message.includes('The phone number provided is invalid')) {
           return {
             success: false,
             error: {
@@ -177,12 +139,58 @@ export const resendSMSConfirmation = publicProcedure
           }
         }
 
-        if (error.name === 'OptedOutException') {
+        if (error.message.includes('Account not authorized')) {
+          return {
+            success: false,
+            error: {
+              message: 'Twilio account not authorized for this operation',
+              code: AwsSnsErrorCode.MESSAGE_SEND_FAILED,
+            },
+          }
+        }
+
+        if (error.message.includes('Insufficient funds')) {
+          return {
+            success: false,
+            error: {
+              message: 'Insufficient Twilio account balance',
+              code: AwsSnsErrorCode.QUOTA_EXCEEDED,
+            },
+          }
+        }
+
+        if (
+          error.message.includes('Rate limit exceeded') ||
+          error.message.includes('Too Many Requests')
+        ) {
+          return {
+            success: false,
+            error: {
+              message: 'Too many SMS requests, please try again later',
+              code: AwsSnsErrorCode.THROTTLING_EXCEPTION,
+            },
+          }
+        }
+
+        if (
+          error.message.includes('blacklisted') ||
+          error.message.includes('opted out')
+        ) {
           return {
             success: false,
             error: {
               message: 'Phone number has opted out of receiving SMS',
               code: AwsSnsErrorCode.OPTED_OUT,
+            },
+          }
+        }
+
+        if (error.message.includes('Unable to create record')) {
+          return {
+            success: false,
+            error: {
+              message: 'Failed to send SMS message',
+              code: AwsSnsErrorCode.MESSAGE_SEND_FAILED,
             },
           }
         }
