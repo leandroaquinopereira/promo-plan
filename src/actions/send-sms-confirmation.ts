@@ -1,11 +1,5 @@
 'use server'
 
-import {
-  KMSThrottlingException,
-  PublishCommand,
-  PublishCommandInput,
-  SNSClient,
-} from '@aws-sdk/client-sns'
 import { Collections } from '@promo/collections'
 import { ActionsSuccessCodes } from '@promo/constants/actions-success-codes'
 import { AwsSnsErrorCode } from '@promo/constants/aws-sns-error-code'
@@ -33,13 +27,6 @@ export const sendSMSConfirmation = publicProcedure
     const verificationCode = await generateVerificationCode(phone)
 
     const twilioClient = twilio(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN)
-    const snsClient = new SNSClient({
-      region: env.AWS_REGION,
-      credentials: {
-        accessKeyId: env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-      },
-    })
 
     const message = `Olá! Seu código de verificação é: ${verificationCode}. Use este código para redefinir sua senha.`
 
