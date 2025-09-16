@@ -33,8 +33,16 @@ export const createTastingAction = authProcedure
         required_error: 'Empresa é obrigatória',
       }),
       products: z.array(
-        z.string({
-          required_error: 'Produtos são obrigatórios',
+        z.object({
+          value: z.string({
+            required_error: 'Produtos são obrigatórios',
+          }),
+          quantity: z
+            .number({
+              required_error: 'Quantidade é obrigatória',
+            })
+            .optional()
+            .default(1),
         }),
       ),
       notes: z.string().optional(),
@@ -63,7 +71,7 @@ export const createTastingAction = authProcedure
       .doc(companyId)
 
     const productsIds = productsInput.map((product) =>
-      extractValueFromCombobox(product),
+      extractValueFromCombobox(product.value),
     )
 
     const productsRefs = productsIds.map((productId) =>
@@ -107,7 +115,17 @@ export const createTastingAction = authProcedure
         status: TastingStatusEnum.DRAFT,
         promoter: promoterRef,
         company: companyRef,
-        products: productsRefs,
+        products: productsRefs.reduce((acc, product) => {
+          const productQuantity = productsInput.find(
+            (p) => p.value === product.id,
+          )?.quantity
+
+          acc.push({
+            product: product,
+            quantity: productQuantity || 1,
+          })
+          return acc
+        }, [] as any[]),
         startDate: firestore.Timestamp.fromDate(startDate),
         endDate: firestore.Timestamp.fromDate(endDate),
         notes: notes?.trim() || '',

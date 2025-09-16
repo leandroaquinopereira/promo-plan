@@ -365,7 +365,7 @@ export function ListTableRow({
           <HoverCardContent
             className="w-96 p-0 shadow-xl border-purple-100 dark:border-purple-900 overflow-hidden"
             align="start"
-            side="right"
+            side="bottom"
             sideOffset={8}
           >
             <div className="bg-gradient-to-br from-purple-50/50 to-blue-50/50 p-4 border-b dark:from-zinc-950/50 dark:to-zinc-950/50">
@@ -376,7 +376,7 @@ export function ListTableRow({
                 <div>
                   <h4 className="font-semibold">Produtos Selecionados</h4>
                   <p className="text-xs text-muted-foreground">
-                    Degustação • {tasting.id}
+                    Degustação • {tasting.row}
                   </p>
                 </div>
               </div>

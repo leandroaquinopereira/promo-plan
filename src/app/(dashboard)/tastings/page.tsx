@@ -10,7 +10,7 @@ export default async function TastingsPage() {
       <HeaderSection />
 
       {/* Stats Cards */}
-      <CardStatisticSection />
+      {/* <CardStatisticSection /> */}
 
       {/* Filters and Search */}
       <FilterSection />

@@ -1,4 +1,4 @@
-import { RegisterTastingForm } from './components/form'
+import { RegisterTastingForm } from '../components/form'
 
 export default async function RegisterTastingPage() {
   return (

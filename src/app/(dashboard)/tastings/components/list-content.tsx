@@ -34,6 +34,7 @@ import Link from 'next/link'
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs'
 import { useEffect, useRef, useState } from 'react'
 
+import { CreationForm } from './creation-form'
 import { ListPaginationSection } from './list-pagination-section'
 import { ListTableHeader } from './list-table-header'
 import { ListTableRow } from './list-table-row'
@@ -309,12 +310,7 @@ export function ListContent() {
       <Card className="px-4">
         <CardContent className="p-0">
           <CardHeader className="p-0 justify-end w-full sm:w-auto">
-            <Link href="/tastings/register" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto" variant="default">
-                <Plus className="size-4" />
-                Nova Degustação
-              </Button>
-            </Link>
+            <CreationForm />
           </CardHeader>
           <Table>
             <ListTableHeader

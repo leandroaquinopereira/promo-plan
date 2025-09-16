@@ -5,7 +5,7 @@ import { Calendar } from '@promo/components/ui/calendar-rac'
 import { DateInput } from '@promo/components/ui/datefield-rac'
 import { cn } from '@promo/lib/utils'
 import { CalendarIcon } from 'lucide-react'
-import { forwardRef } from 'react'
+import { forwardRef, useEffect, useState } from 'react'
 import {
   Button,
   DatePicker as DatePickerRac,
@@ -22,6 +22,8 @@ type DatePickerProps = {
   disabled?: boolean
   className?: string
   error?: boolean
+  /** Container element for the popover portal (useful for modals) */
+  portalContainer?: Element | null
   'aria-label'?: string
   'aria-labelledby'?: string
   'aria-describedby'?: string
@@ -36,10 +38,29 @@ export const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(
       disabled = false,
       className,
       error = false,
+      portalContainer,
       ...ariaProps
     },
     ref,
   ) {
+    // Auto-detect modal container if not provided
+    const [modalContainer, setModalContainer] = useState<Element | null>(null)
+
+    useEffect(() => {
+      if (!portalContainer) {
+        // Look for modal containers in the DOM
+        const dialogContent = document.querySelector(
+          '[data-radix-dialog-content]',
+        )
+        const drawerContent = document.querySelector('[data-vaul-drawer]')
+        const modalContent = dialogContent || drawerContent
+
+        if (modalContent) {
+          setModalContainer(modalContent)
+        }
+      }
+    }, [portalContainer])
+
     // Converte Date para CalendarDate (formato do react-aria-components)
     const getCalendarDateFromDate = (
       date: Date | null,
@@ -118,7 +139,7 @@ export const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(
         </div>
         <Popover
           className={cn(
-            'bg-background text-popover-foreground z-50 rounded-lg border shadow-lg outline-hidden',
+            'bg-background text-popover-foreground z-[9999] rounded-lg border shadow-lg outline-hidden',
             'data-entering:animate-in data-exiting:animate-out',
             'data-[entering]:fade-in-0 data-[exiting]:fade-out-0',
             'data-[entering]:zoom-in-95 data-[exiting]:zoom-out-95',
@@ -126,6 +147,10 @@ export const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(
             'data-[placement=right]:slide-in-from-left-2 data-[placement=top]:slide-in-from-bottom-2',
           )}
           offset={4}
+          containerPadding={20}
+          UNSTABLE_portalContainer={
+            portalContainer || modalContainer || undefined
+          }
         >
           <Dialog className="max-h-[inherit] overflow-auto p-2">
             <Calendar />
