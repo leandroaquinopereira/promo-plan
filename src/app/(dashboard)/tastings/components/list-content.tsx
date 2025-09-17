@@ -34,6 +34,7 @@ import Link from 'next/link'
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs'
 import { useEffect, useRef, useState } from 'react'
 
+import { CreateTastingModal } from './create-modal'
 import { CreationForm } from './creation-form'
 import { ListPaginationSection } from './list-pagination-section'
 import { ListTableHeader } from './list-table-header'
@@ -310,7 +311,7 @@ export function ListContent() {
       <Card className="px-4">
         <CardContent className="p-0">
           <CardHeader className="p-0 justify-end w-full sm:w-auto">
-            <CreationForm />
+            <CreateTastingModal />
           </CardHeader>
           <Table>
             <ListTableHeader

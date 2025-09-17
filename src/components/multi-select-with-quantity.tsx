@@ -491,7 +491,7 @@ function MultipleSelectorWithQuantity({
           commandProps?.onKeyDown?.(e)
         }}
         className={cn(
-          'h-auto overflow-visible bg-transparent dark:bg-input/30',
+          'h-auto overflow-visible bg-transparent',
           commandProps?.className,
         )}
         shouldFilter={
@@ -502,7 +502,7 @@ function MultipleSelectorWithQuantity({
         filter={commandFilter()}
       >
         <div
-          className="w-full h-9"
+          className="w-full h-9 bg-transparent"
           onClick={() => {
             if (disabled) return
             inputRef?.current?.focus()

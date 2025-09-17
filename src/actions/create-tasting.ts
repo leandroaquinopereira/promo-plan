@@ -1,13 +1,12 @@
 'use server'
 
 import { Collections } from '@promo/collections'
-import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
 import { TastingStatusEnum } from '@promo/enum/tasting-status'
 import { buildTasks } from '@promo/factory/build-tasks'
 import { dayjsApi } from '@promo/lib/dayjs'
-import { serverActionOutputSchema } from '@promo/schemas/server-action-output'
 import { extractValueFromCombobox } from '@promo/utils/extract-value-from-combobox'
 import { generateId } from '@promo/utils/generate-id'
+import { returnsDefaultActionMessage } from '@promo/utils/returns-default-action-message'
 import { firestore } from 'firebase-admin'
 import { z } from 'zod'
 
@@ -48,7 +47,6 @@ export const createTastingAction = authProcedure
       notes: z.string().optional(),
     }),
   )
-  .output(serverActionOutputSchema)
   .handler(async ({ input, ctx }) => {
     const {
       promoter: promoterInput,
@@ -87,13 +85,10 @@ export const createTastingAction = authProcedure
     const objects = [promoter, company, ...products]
 
     if (objects.some((obj) => !obj.exists)) {
-      return {
+      return returnsDefaultActionMessage({
+        message: 'Promotor, empresa ou produtos não encontrados',
         success: false,
-        error: {
-          message: 'Promotor, empresa ou produtos não encontrados',
-          code: FirebaseErrorCode.OBJECT_NOT_FOUND,
-        },
-      }
+      })
     }
 
     const total = await ctx.apps.firestore
@@ -108,34 +103,49 @@ export const createTastingAction = authProcedure
       .collection(Collections.TASTINGS)
       .doc(uid)
       .set({
-        createdAt: firestore.Timestamp.now(),
-        updatedAt: firestore.Timestamp.now(),
+        createdAt: firestore.Timestamp.now().toMillis(),
+        updatedAt: firestore.Timestamp.now().toMillis(),
         createdBy: ctx.session.user.id,
         row,
         status: TastingStatusEnum.DRAFT,
-        promoter: promoterRef,
-        company: companyRef,
-        products: productsRefs.reduce((acc, product) => {
+        promoterId: promoterId,
+        promoter: {
+          id: promoterId,
+          name: promoter.data()?.name || '',
+          email: promoter.data()?.email || '',
+        },
+        companyId: companyId,
+        company: {
+          id: companyId,
+          name: company.data()?.name || '',
+        },
+        products: products.reduce((acc, product) => {
           const productQuantity = productsInput.find(
             (p) => p.value === product.id,
           )?.quantity
 
           acc.push({
-            product: product,
+            id: product.id,
+            name: product.data()?.name || '',
             quantity: productQuantity || 1,
           })
+
           return acc
         }, [] as any[]),
-        startDate: firestore.Timestamp.fromDate(startDate),
-        endDate: firestore.Timestamp.fromDate(endDate),
+        startDate: firestore.Timestamp.fromDate(startDate).toMillis(),
+        endDate: firestore.Timestamp.fromDate(endDate).toMillis(),
         notes: notes?.trim() || '',
         city,
       })
 
     await ctx.apps.firestore.collection(Collections.TASTING_LOGS).add({
-      tasting: ctx.apps.firestore.collection(Collections.TASTINGS).doc(uid),
+      tastingId: uid,
+      tasting: {
+        id: uid,
+        row,
+      },
       status: TastingStatusEnum.DRAFT,
-      createdAt: firestore.Timestamp.now(),
+      createdAt: firestore.Timestamp.now().toMillis(),
       createdBy: ctx.session.user.id,
     })
 
@@ -156,8 +166,13 @@ export const createTastingAction = authProcedure
         .doc(packageId)
 
       await packageRef.set({
-        createdAt: firestore.Timestamp.now(),
-        updatedAt: firestore.Timestamp.now(),
+        tastingId: uid,
+        tasting: {
+          id: uid,
+          row,
+        },
+        createdAt: firestore.Timestamp.now().toMillis(),
+        updatedAt: firestore.Timestamp.now().toMillis(),
       })
 
       const tasks = buildTasks(uid, packageId)
@@ -166,12 +181,20 @@ export const createTastingAction = authProcedure
           packageRef
             .collection(Collections.TASKS)
             .doc(task.id.toString())
-            .set(task),
+            .set({
+              ...task,
+              tastingId: uid,
+              tasting: {
+                id: uid,
+                row,
+              },
+            }),
         ),
       )
     }
 
-    return {
+    return returnsDefaultActionMessage({
+      message: 'Degustação cadastrada com sucesso',
       success: true,
-    }
+    })
   })

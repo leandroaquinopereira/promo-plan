@@ -1,6 +1,7 @@
 import { cn } from '@promo/lib/utils'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
+import type { ClassValue } from 'clsx'
 import { Loader } from 'lucide-react'
 import * as React from 'react'
 
@@ -41,6 +42,8 @@ type ButtonProps = React.ComponentProps<'button'> &
     isLoading?: boolean
     icon?: React.ElementType
     iconPosition?: 'left' | 'right'
+    iconClassName?: ClassValue
+    contentContainerClassName?: ClassValue
   }
 
 function Button({
@@ -53,6 +56,8 @@ function Button({
   children,
   icon: Icon,
   iconPosition = 'left',
+  iconClassName,
+  contentContainerClassName,
   ...props
 }: ButtonProps) {
   const Comp = asChild ? Slot : 'button'
@@ -64,16 +69,16 @@ function Button({
       className={cn('relative', buttonVariants({ variant, size, className }))}
       {...props}
     >
-      <div className="flex items-center gap-2">
+      <div className={cn('flex items-center gap-2', contentContainerClassName)}>
         {isLoading && iconPosition === 'left' && (
           <Loader className="size-4 animate-spin" />
         )}
         {iconPosition === 'left' && !isLoading && Icon && (
-          <Icon className="size-4" />
+          <Icon className={cn('size-4', iconClassName)} />
         )}
         {children}
         {iconPosition === 'right' && !isLoading && Icon && (
-          <Icon className="size-4" />
+          <Icon className={cn('size-4', iconClassName)} />
         )}
         {isLoading && iconPosition === 'right' && (
           <Loader className="size-4 animate-spin" />

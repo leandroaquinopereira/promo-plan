@@ -38,7 +38,7 @@ export function MultiselectItem({
         'animate-fadeIn bg-background text-foreground hover:bg-accent/50 relative inline-flex h-8',
         'cursor-default items-center rounded border border-border ps-3 pe-8 text-xs font-medium transition-all duration-200',
         'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 data-fixed:pe-3',
-        'divide-x divide-zinc-200',
+        'divide-x divide-zinc-200 dark:divide-zinc-800',
         badgeClassName,
       )}
       data-fixed={option.fixed}

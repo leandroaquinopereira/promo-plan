@@ -40,9 +40,17 @@ export const createUserAction = authProcedure
       })
     }
 
-    const roleRef = apps.firestore
+    const roleRef = await apps.firestore
       .collection(Collections.ROLES)
       .doc(input.permission)
+      .get()
+
+    if (!roleRef.exists) {
+      return returnsDefaultActionMessage({
+        message: 'Permissão não encontrada',
+        success: false,
+      })
+    }
 
     const searchNameSubstrings = generateSubstrings(input.name)
     const searchPhoneSubstrings = generateSubstrings(phoneFormatted)
@@ -66,7 +74,12 @@ export const createUserAction = authProcedure
         createdBy: session.user.id,
         updatedBy: session.user.id,
         situation: UserSituationEnum.ACTIVE,
-        role: roleRef,
+        roleId: roleRef.id,
+        role: {
+          id: roleRef.id,
+          name: roleRef.data()?.name || '',
+          slug: roleRef.data()?.slug || '',
+        },
         name: input.name,
         phone: phoneFormatted,
         state: input.state,

@@ -74,9 +74,11 @@ export const updateUserAction = authProcedure
         ...user.data(),
         updatedAt: firestore.Timestamp.now().toMillis(),
         updatedBy: session.user.id,
+        roleId: input.permission,
         role: {
           id: input.permission,
           name: roleRef.data()?.name || '',
+          slug: roleRef.data()?.slug || '',
         },
         name: input.name,
         phone: phoneFormatted,

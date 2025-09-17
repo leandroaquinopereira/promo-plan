@@ -109,8 +109,13 @@ const ComboboxComp = function ({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="w-full justify-between gap-2 px-2"
           data-value={extractValueFromCombobox(value)}
+          isLoading={isLoadingOptions}
+          icon={ChevronsUpDownIcon}
+          iconPosition="right"
+          iconClassName="ml-auto"
+          contentContainerClassName="w-full"
           ref={popoverTriggerRef}
         >
           {value
@@ -124,11 +129,6 @@ const ComboboxComp = function ({
                 return option.raw?.id === value
               })?.label || value
             : placeholder}
-          {isLoadingOptions ? (
-            <Loader className="ml-2 size-4 shrink-0 opacity-50 animate-spin" />
-          ) : (
-            <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
-          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent ref={popoverContentRef} className="w-full p-0">

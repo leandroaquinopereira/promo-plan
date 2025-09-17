@@ -1,6 +1,7 @@
 import type { CompanyStatusEnum } from '@promo/enum/company-status'
 import type { ProductStatusEnum } from '@promo/enum/product-status'
 import type { TaskType } from '@promo/enum/tasks'
+import type { TastingStatusEnum } from '@promo/enum/tasting-status'
 import type { UserSituationEnum } from '@promo/enum/user-situation'
 import type { UserStatusEnum } from '@promo/enum/user-status'
 import type { DocumentReference, Timestamp } from 'firebase/firestore'
@@ -54,6 +55,7 @@ export interface User {
   phone: string
   password: string
   email?: string
+  roleId: string
   role: {
     id: string
     name: string
@@ -93,39 +95,47 @@ export interface Product {
   updatedBy: string
 }
 
-export type TastingStatus =
-  | 'draft'
-  | 'active'
-  | 'completed'
-  | 'cancelled'
-  | 'deleted'
-  | 'todo'
-  | 'in_progress'
-
-export type ProductTasting = Product | DocumentReference
+export type ProductTasting = {
+  id: string
+  name: string
+  quantity: number
+}
 
 export interface Tasting {
   id: number
-  promoter: User | DocumentReference
+  promoterId: string
+  promoter: {
+    id: string
+    name: string
+    email: string
+  }
   row: number
   city: string
-  startDate: Timestamp | Date
-  endDate: Timestamp | Date
-  company: Company | DocumentReference
+  startDate: number
+  endDate: number
+  companyId: string
+  company: {
+    id: string
+    name: string
+  }
   products: ProductTasting[]
   notes?: string
-  status: TastingStatus
-  createdAt: Timestamp | Date
-  updatedAt: Timestamp | Date
+  status: TastingStatusEnum
+  createdAt: number
+  updatedAt: number
   createdBy: string
   updatedBy: string
 }
 
 export interface TastingLog {
   id: string
-  tasting: Tasting | DocumentReference
-  status: TastingStatus
-  createdAt: Timestamp | Date
+  tastingId: string
+  tasting: {
+    id: string
+    row: number
+  }
+  status: TastingStatusEnum
+  createdAt: number
   createdBy: string
 }
 
@@ -134,17 +144,21 @@ export interface Task {
   title: string
   description: string
   type: TaskType
-  tasting: Tasting | DocumentReference
+  tastingId: string
+  tasting: {
+    id: string
+    row: number
+  }
   status: 'pending' | 'in_progress' | 'completed'
   category: string
   estimatedTime: number
-  completedAt?: Timestamp | Date
+  completedAt?: number
   completedBy?: string
-  startedAt?: Timestamp | Date
+  startedAt?: number
   assignedTo?: string
   dependencies?: number[]
-  createdAt: Timestamp | Date
+  createdAt: number
   createdBy: string
-  updatedAt: Timestamp | Date
+  updatedAt: number
   updatedBy: string
 }

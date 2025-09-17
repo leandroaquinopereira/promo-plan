@@ -65,7 +65,9 @@ export function Modal({
             </DrawerDescription>
           </DrawerHeader>
 
-          <div className="p-6">{children}</div>
+          <div className="p-6 max-h-[calc(100vh-10rem)] overflow-y-auto">
+            {children}
+          </div>
 
           <DrawerFooter>
             <DrawerClose asChild>
@@ -101,7 +103,9 @@ export function Modal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="p-6">{children}</div>
+        <div className="p-6 max-h-[calc(100vh-10rem)] overflow-y-auto">
+          {children}
+        </div>
 
         <DialogFooter className="border-t px-6 py-4">
           <DialogClose asChild>
