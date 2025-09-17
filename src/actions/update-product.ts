@@ -1,9 +1,9 @@
 'use server'
 
-import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
+import { Collections } from '@promo/collections'
 import { ProductStatusEnum } from '@promo/enum/product-status'
-import { serverActionOutputSchema } from '@promo/schemas/server-action-output'
 import { generateSubstrings } from '@promo/utils/generates-substrings-to-query-search'
+import { returnsDefaultActionMessage } from '@promo/utils/returns-default-action-message'
 import { firestore } from 'firebase-admin'
 import z from 'zod'
 
@@ -16,24 +16,22 @@ export const updateProductAction = authProcedure
       id: z.string(),
       name: z.string(),
       description: z.string().optional(),
-      status: z.enum([ProductStatusEnum.ACTIVE, ProductStatusEnum.INACTIVE]),
+      status: z.nativeEnum(ProductStatusEnum),
     }),
   )
-  .output(serverActionOutputSchema)
   .handler(async ({ input, ctx }) => {
     const { id, name, description, status } = input
 
-    const productRef = ctx.apps.firestore.collection('products').doc(id)
+    const productRef = ctx.apps.firestore
+      .collection(Collections.PRODUCTS)
+      .doc(id)
     const product = await productRef.get()
 
     if (!product.exists) {
-      return {
+      return returnsDefaultActionMessage({
+        message: 'Produto não encontrado',
         success: false,
-        error: {
-          code: FirebaseErrorCode.OBJECT_NOT_FOUND,
-          message: 'Produto não encontrado',
-        },
-      }
+      })
     }
 
     const nameSubstrings = generateSubstrings(name)
@@ -46,10 +44,11 @@ export const updateProductAction = authProcedure
       description,
       status,
       searchQuery: Array.from(searchQuery),
-      updatedAt: firestore.Timestamp.now(),
+      updatedAt: firestore.Timestamp.now().toMillis(),
     })
 
-    return {
+    return returnsDefaultActionMessage({
+      message: 'Produto atualizado com sucesso',
       success: true,
-    }
+    })
   })

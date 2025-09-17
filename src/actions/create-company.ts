@@ -2,9 +2,9 @@
 
 import { Collections } from '@promo/collections'
 import { CompanyStatusEnum } from '@promo/enum/company-status'
-import { serverActionOutputSchema } from '@promo/schemas/server-action-output'
+import { CreateObjectWithCommonValues } from '@promo/utils/create-object-with-common-values'
 import { generateSubstrings } from '@promo/utils/generates-substrings-to-query-search'
-import { firestore } from 'firebase-admin'
+import { returnsDefaultActionMessage } from '@promo/utils/returns-default-action-message'
 import { z } from 'zod'
 
 import { authProcedure } from './procedures/auth-procedure'
@@ -16,7 +16,6 @@ export const createCompanyAction = authProcedure
       name: z.string().min(1, { message: 'Nome é obrigatório' }),
     }),
   )
-  .output(serverActionOutputSchema)
   .handler(async ({ input, ctx }) => {
     const { name } = input
 
@@ -28,17 +27,19 @@ export const createCompanyAction = authProcedure
 
     const total = countQuery.data().count || 0
 
-    await ctx.apps.firestore.collection(Collections.COMPANIES).add({
-      name,
-      createdAt: firestore.Timestamp.now(),
-      updatedAt: firestore.Timestamp.now(),
-      status: CompanyStatusEnum.ACTIVE,
-      createdBy: ctx.session.user.id,
-      searchQuery: Array.from(searchQuery),
-      row: total + 1,
-    })
+    await ctx.apps.firestore.collection(Collections.COMPANIES).add(
+      CreateObjectWithCommonValues.create({
+        name,
+        status: CompanyStatusEnum.ACTIVE,
+        createdBy: ctx.session.user.id,
+        searchQuery: Array.from(searchQuery),
+        row: total + 1,
+        updatedBy: ctx.session.user.id,
+      }),
+    )
 
-    return {
+    return returnsDefaultActionMessage({
+      message: 'Empresa cadastrada com sucesso',
       success: true,
-    }
+    })
   })

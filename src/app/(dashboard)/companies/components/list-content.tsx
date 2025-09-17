@@ -32,12 +32,14 @@ import { Building } from 'lucide-react'
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs'
 import { useEffect, useRef, useState } from 'react'
 
+import { EditCompanyModal, type EditCompanyModalRefs } from './edit-modal'
 import { ListPaginationSection } from './list-pagination-section'
 import { ListTableHeader } from './list-table-header'
 import { ListTableRow } from './list-table-row'
 
 export function ListContent() {
   const unsubscribeRef = useRef<Unsubscribe | null>(null)
+  const editCompanyModalRef = useRef<EditCompanyModalRefs | null>(null)
 
   const [isLoading, setIsLoading] = useState(true)
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set())
@@ -55,6 +57,26 @@ export function ListContent() {
     'current-page',
     parseAsInteger.withDefault(1),
   )
+
+  function handleSelectedRow(checked: boolean, companyId: string) {
+    setSelectedRows((prevSelected) => {
+      const newSelected = new Set(prevSelected)
+      if (checked) {
+        newSelected.add(companyId)
+      } else {
+        newSelected.delete(companyId)
+      }
+      return newSelected
+    })
+  }
+
+  function handleSelectedAllRows(checked: boolean) {
+    if (checked) {
+      setSelectedRows(new Set(response.companies.map((company) => company.id)))
+    } else {
+      setSelectedRows(new Set())
+    }
+  }
 
   useEffect(() => {
     function setupRealtimeListener() {
@@ -153,26 +175,6 @@ export function ListContent() {
     }
   }, [currentPage, search, status])
 
-  function handleSelectedRow(checked: boolean, companyId: string) {
-    setSelectedRows((prevSelected) => {
-      const newSelected = new Set(prevSelected)
-      if (checked) {
-        newSelected.add(companyId)
-      } else {
-        newSelected.delete(companyId)
-      }
-      return newSelected
-    })
-  }
-
-  function handleSelectedAllRows(checked: boolean) {
-    if (checked) {
-      setSelectedRows(new Set(response.companies.map((company) => company.id)))
-    } else {
-      setSelectedRows(new Set())
-    }
-  }
-
   return (
     <MotionDiv
       initial={{ opacity: 0, y: 20 }}
@@ -197,6 +199,7 @@ export function ListContent() {
                     data={company}
                     isSelected={selectedRows.has(company.id)}
                     onSelectedRow={handleSelectedRow}
+                    editCompanyModalRef={editCompanyModalRef}
                   />
                 ))}
 
@@ -224,6 +227,8 @@ export function ListContent() {
           totalCompaniesShowing={response.companies.length}
         />
       </Card>
+
+      <EditCompanyModal ref={editCompanyModalRef} />
     </MotionDiv>
   )
 }

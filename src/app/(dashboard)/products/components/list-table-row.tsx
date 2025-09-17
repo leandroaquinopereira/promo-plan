@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from '@bprogress/next'
+import { deleteProductAction } from '@promo/actions/delete-product'
 import { Badge } from '@promo/components/ui/badge'
 import { Button } from '@promo/components/ui/button'
 import { Checkbox } from '@promo/components/ui/checkbox'
@@ -23,33 +23,67 @@ import { productStatusMap } from '@promo/constants/product-status-map'
 import { dayjsApi } from '@promo/lib/dayjs'
 import { cn } from '@promo/lib/utils'
 import type { Product } from '@promo/types/firebase'
-import { convertFirebaseDate } from '@promo/utils/date-helpers'
 import { Edit3, Eye, MoreHorizontal, Package, Trash2 } from 'lucide-react'
+import type { RefObject } from 'react'
 import { toast } from 'sonner'
+import { useServerAction } from 'zsa-react'
+
+import type { EditProductModalRefs } from './edit-modal'
 
 interface ListTableRowProps {
   data: Product
   isSelected: boolean
   onSelectedRow?: (checked: boolean, productId: string) => void
+  editProductModalRef: RefObject<EditProductModalRefs | null>
 }
 
 export function ListTableRow({
   data: product,
   isSelected,
   onSelectedRow,
+  editProductModalRef,
 }: ListTableRowProps) {
-  const router = useRouter()
+  const { execute } = useServerAction(deleteProductAction)
 
   function handleViewProduct() {
-    router.push(`/products/${product.id}/detail`)
+    editProductModalRef.current?.open(product, true)
   }
 
   function handleEditProduct() {
-    router.push(`/products/${product.id}/edit`)
+    editProductModalRef.current?.open(product, false)
   }
 
-  function handleDeleteProduct() {
-    toast.error('Função não implementada')
+  async function handleDeleteProduct() {
+    const toastId = toast.loading('Deletando produto...')
+    try {
+      const [result, resultError] = await execute({
+        id: product.id,
+      })
+
+      if (resultError) {
+        toast.error('Erro ao deletar produto', {
+          description: resultError.message || 'Tente novamente mais tarde',
+          id: toastId,
+        })
+      }
+
+      if (result?.success) {
+        toast.success(result.message, {
+          id: toastId,
+        })
+        return
+      }
+
+      toast.error('Erro ao deletar produto', {
+        description: result?.message || 'Tente novamente mais tarde',
+        id: toastId,
+      })
+    } catch (error) {
+      toast.error('Erro ao deletar produto', {
+        description: 'Tente novamente mais tarde',
+        id: toastId,
+      })
+    }
   }
 
   return (
@@ -104,14 +138,11 @@ export function ListTableRow({
         <Tooltip>
           <TooltipTrigger className="cursor-help">
             <div className="text-xs text-muted-foreground">
-              {dayjsApi(convertFirebaseDate(product.createdAt)).fromNow()}
+              {dayjsApi(product.createdAt).fromNow()}
             </div>
           </TooltipTrigger>
           <TooltipContent>
-            Criado em:{' '}
-            {dayjsApi(convertFirebaseDate(product.createdAt)).format(
-              'DD/MM/YYYY HH:mm',
-            )}
+            Criado em: {dayjsApi(product.createdAt).format('DD/MM/YYYY HH:mm')}
           </TooltipContent>
         </Tooltip>
       </TableCell>

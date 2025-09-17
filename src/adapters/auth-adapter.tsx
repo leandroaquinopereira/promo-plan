@@ -27,7 +27,7 @@ export async function AuthAdapter({ children }: AuthAdapterProps) {
       .doc(responseAuth.user.phoneNumber.replace(/\D/, '').replace(/^\+55/, ''))
       .set(
         {
-          lastLoggedAt: firestore.Timestamp.now(),
+          lastLoggedAt: firestore.Timestamp.now().toMillis(),
         },
         {
           merge: true,

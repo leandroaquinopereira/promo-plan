@@ -2,9 +2,9 @@
 
 import { Collections } from '@promo/collections'
 import { ProductStatusEnum } from '@promo/enum/product-status'
-import { serverActionOutputSchema } from '@promo/schemas/server-action-output'
+import { CreateObjectWithCommonValues } from '@promo/utils/create-object-with-common-values'
 import { generateSubstrings } from '@promo/utils/generates-substrings-to-query-search'
-import { firestore } from 'firebase-admin'
+import { returnsDefaultActionMessage } from '@promo/utils/returns-default-action-message'
 import { z } from 'zod'
 
 import { authProcedure } from './procedures/auth-procedure'
@@ -17,7 +17,6 @@ export const createProductAction = authProcedure
       description: z.string().optional(),
     }),
   )
-  .output(serverActionOutputSchema)
   .handler(async ({ input, ctx }) => {
     const { name, description } = input
 
@@ -30,18 +29,22 @@ export const createProductAction = authProcedure
       .count()
       .get()
 
-    await ctx.apps.firestore.collection(Collections.PRODUCTS).add({
-      name,
-      description,
-      status: ProductStatusEnum.ACTIVE,
-      searchQuery: Array.from(searchQuery),
-      row: (total.data().count || 0) + 1,
-      createdAt: firestore.Timestamp.now(),
-      updatedAt: firestore.Timestamp.now(),
-      createdBy: ctx.session.user.id,
-    })
+    const row = (total.data().count || 0) + 1
 
-    return {
+    await ctx.apps.firestore.collection(Collections.PRODUCTS).add(
+      CreateObjectWithCommonValues.create({
+        name,
+        description,
+        status: ProductStatusEnum.ACTIVE,
+        searchQuery: Array.from(searchQuery),
+        row,
+        createdBy: ctx.session.user.id,
+        updatedBy: ctx.session.user.id,
+      }),
+    )
+
+    return returnsDefaultActionMessage({
+      message: 'Produto cadastrado com sucesso',
       success: true,
-    }
+    })
   })

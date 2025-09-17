@@ -3,6 +3,8 @@ import { Button } from '@promo/components/ui/button'
 import { UserPlus } from 'lucide-react'
 import Link from 'next/link'
 
+import { CreateUserModal } from './create-modal'
+
 export async function HeaderSection() {
   return (
     <MotionDiv
@@ -18,12 +20,7 @@ export async function HeaderSection() {
         </p>
       </div>
       <div className="gap-3 grid grid-cols-1 @xl:flex @xl:items-start">
-        <Link href="/users/register">
-          <Button className="w-full @lg:w-auto" variant="default">
-            <UserPlus className="size-4" />
-            Novo Usuário
-          </Button>
-        </Link>
+        <CreateUserModal />
       </div>
     </MotionDiv>
   )

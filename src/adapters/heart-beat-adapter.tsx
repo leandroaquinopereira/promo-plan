@@ -1,6 +1,7 @@
 'use client'
 
 import { updateUserPresenceAction } from '@promo/actions/update-presence'
+import { UserStatusEnum } from '@promo/enum/user-status'
 import { useSession } from 'next-auth/react'
 import { type ReactNode, useCallback, useEffect, useRef } from 'react'
 import { useServerAction } from 'zsa-react'
@@ -17,13 +18,13 @@ export function HeartBeatAdapter({ children }: HeartBeatAdapterProps) {
   const offlineTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const isUserActiveRef = useRef<boolean>(true)
   const updatePresenceRef = useRef<
-    ((userId: string, situation: 'online' | 'offline') => Promise<void>) | null
+    ((userId: string, situation: UserStatusEnum) => Promise<void>) | null
   >(null)
 
   const updatePresence = useCallback(
     async function updatePresence(
       userId: string,
-      situation: 'online' | 'offline' = 'online',
+      situation: UserStatusEnum = UserStatusEnum.ONLINE,
     ) {
       if (isPending) {
         return
@@ -71,7 +72,7 @@ export function HeartBeatAdapter({ children }: HeartBeatAdapterProps) {
       // 2 minutos = 120000ms
       offlineTimeoutRef.current = setTimeout(() => {
         isUserActiveRef.current = false
-        updatePresenceRef.current?.(userId, 'offline')
+        updatePresenceRef.current?.(userId, UserStatusEnum.OFFLINE)
       }, 120000)
     }
 
@@ -83,14 +84,14 @@ export function HeartBeatAdapter({ children }: HeartBeatAdapterProps) {
         // Voltou ao foco - cancela timeout e marca como online
         clearOfflineTimeout()
         isUserActiveRef.current = true
-        updatePresenceRef.current?.(userId, 'online')
+        updatePresenceRef.current?.(userId, UserStatusEnum.ONLINE)
       }
     }
 
     const handleFocus = () => {
       clearOfflineTimeout()
       isUserActiveRef.current = true
-      updatePresenceRef.current?.(userId, 'online')
+      updatePresenceRef.current?.(userId, UserStatusEnum.ONLINE)
     }
 
     const handleBlur = () => {
@@ -102,24 +103,24 @@ export function HeartBeatAdapter({ children }: HeartBeatAdapterProps) {
       // Fechou navegador - offline imediato
       clearOfflineTimeout()
       isUserActiveRef.current = false
-      updatePresenceRef.current?.(userId, 'offline')
+      updatePresenceRef.current?.(userId, UserStatusEnum.OFFLINE)
     }
 
     const handlePageHide = () => {
       // Fechou navegador - offline imediato
       clearOfflineTimeout()
       isUserActiveRef.current = false
-      updatePresenceRef.current?.(userId, 'offline')
+      updatePresenceRef.current?.(userId, UserStatusEnum.OFFLINE)
     }
 
     // Marca como ativo e online inicialmente
     isUserActiveRef.current = true
-    updatePresenceRef.current?.(userId, 'online')
+    updatePresenceRef.current?.(userId, UserStatusEnum.ONLINE)
 
     intervalIdRef.current = setInterval(() => {
       // Só envia online se o usuário estiver ativo E a página estiver visível
       if (isUserActiveRef.current && !document.hidden) {
-        updatePresenceRef.current?.(userId, 'online')
+        updatePresenceRef.current?.(userId, UserStatusEnum.ONLINE)
       }
     }, 10_000)
 
@@ -143,7 +144,7 @@ export function HeartBeatAdapter({ children }: HeartBeatAdapterProps) {
       window.removeEventListener('beforeunload', handleBeforeUnload)
       window.removeEventListener('pagehide', handlePageHide)
 
-      updatePresenceRef.current?.(userId, 'offline')
+      updatePresenceRef.current?.(userId, UserStatusEnum.OFFLINE)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.status, session.data?.user?.id])

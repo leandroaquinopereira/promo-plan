@@ -41,6 +41,7 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { useServerAction } from 'zsa-react'
 
+import { EditUserModal, type EditUserModalRefs } from './edit-modal'
 import { ListHeaderSection } from './list-header-section'
 import { ListPaginationSection } from './list-pagination-section'
 import { ListTableHeader } from './list-table-header'
@@ -51,6 +52,8 @@ export function ListContent() {
   const { execute: disableUserBatch } = useServerAction(disableUserBatchAction)
   const [isLoadingUsers, startTransition] = useTransition()
   const unsubscribeRef = useRef<Unsubscribe | null>(null)
+
+  const editUserModalRef = useRef<EditUserModalRefs | null>(null)
 
   const [search] = useQueryState('search', {
     defaultValue: '',
@@ -99,7 +102,9 @@ export function ListContent() {
     })
   }
 
-  function handleDeleteSelectedRows() {
+  async function handleDeleteSelectedRows() {
+    const toastId = toast.loading('Deletando usuários...')
+
     try {
       const hasActiveUsersOnSelectedRows = response.users.some(
         (user) => user.situation === 'active' && selectedRows.has(user.id),
@@ -108,46 +113,38 @@ export function ListContent() {
       if (hasActiveUsersOnSelectedRows) {
         toast.error(
           'Não é possível deletar usuários ativos. Desabilite-os primeiro.',
+          {
+            id: toastId,
+          },
         )
         return
       }
 
-      toast.promise(
-        execute({
-          users: Array.from(selectedRows),
-        }),
-        {
-          loading: 'Deletando usuários...',
-          success: (result) => {
-            if (!result || typeof result !== 'object') {
-              throw new Error('Resposta inválida do servidor')
-            }
+      const [result, resultError] = await execute({
+        users: Array.from(selectedRows),
+      })
 
-            if ('error' in result && result.error) {
-              throw new Error(
-                // @ts-expect-error ignore error type for now
-                result.error?.message || 'Erro ao deletar usuários',
-              )
-            }
+      if (resultError) {
+        toast.error(resultError.message, {
+          id: toastId,
+        })
+        return
+      }
 
-            if ('success' in result && !result.success) {
-              throw new Error('Falha ao deletar usuário')
-            }
+      if (result.success) {
+        toast.success(result.message, {
+          id: toastId,
+        })
+        return
+      }
 
-            setSelectedRows(new Set()) // Clear selected rows after disabling
-            return 'Usuários deletados com sucesso.'
-          },
-          error: (error) => {
-            if (error instanceof Error) {
-              return error.message
-            }
-
-            return 'Erro ao deletar usuários.'
-          },
-        },
-      )
+      toast.error(result.message, {
+        id: toastId,
+      })
     } catch (error) {
-      console.error('Unexpected error:', error)
+      toast.error('Erro ao deletar usuários.', {
+        id: toastId,
+      })
     }
   }
 
@@ -263,13 +260,6 @@ export function ListContent() {
 
                   user.role = role as any
 
-                  if (user.lastLoggedAt) {
-                    user.lastLoggedAt =
-                      user.lastLoggedAt instanceof Date
-                        ? user.lastLoggedAt
-                        : user.lastLoggedAt.toDate()
-                  }
-
                   const eventsInProgressCount = query(
                     collection(firestore, Collections.EVENTS),
                     and(
@@ -349,44 +339,36 @@ export function ListContent() {
   }, [])
 
   useEffect(() => {
-    function handleDisableAllUsersSelected() {
+    async function handleDisableAllUsersSelected() {
+      const toastId = toast.loading('Desabilitando usuários...')
       try {
-        toast.promise(
-          disableUserBatch({
-            users: Array.from(selectedRows),
-          }),
-          {
-            loading: 'Deletando usuários...',
-            success: (result) => {
-              if (!result || typeof result !== 'object') {
-                throw new Error('Resposta inválida do servidor')
-              }
+        const [result, resultError] = await disableUserBatch({
+          users: Array.from(selectedRows),
+        })
 
-              if ('error' in result && result.error) {
-                throw new Error(
-                  // @ts-expect-error ignore error type for now
-                  result.error?.message || 'Erro ao desabilitar usuários',
-                )
-              }
+        if (resultError) {
+          toast.error(resultError.message, {
+            id: toastId,
+          })
+          return
+        }
 
-              if ('success' in result && !result.success) {
-                throw new Error('Falha ao desabilitar usuário')
-              }
+        if (result.success) {
+          toast.success(result.message, {
+            id: toastId,
+          })
 
-              setSelectedRows(new Set()) // Clear selected rows after disabling
-              return 'Usuários desabilitados com sucesso.'
-            },
-            error: (error) => {
-              if (error instanceof Error) {
-                return error.message
-              }
+          setSelectedRows(new Set())
+          return
+        }
 
-              return 'Erro ao desabilitar usuários.'
-            },
-          },
-        )
+        toast.error(result.message, {
+          id: toastId,
+        })
       } catch (error) {
-        console.error('Unexpected error:', error)
+        toast.error('Erro ao desabilitar usuários.', {
+          id: toastId,
+        })
       }
     }
 
@@ -440,6 +422,7 @@ export function ListContent() {
                     isSelected={selectedRows.has(user.id)}
                     data={user}
                     key={user.id}
+                    editUserModalRef={editUserModalRef}
                   />
                 ))}
 
@@ -468,6 +451,8 @@ export function ListContent() {
           totalUsersShowing={response.users.length || 0}
         />
       </Card>
+
+      <EditUserModal ref={editUserModalRef} />
     </MotionDiv>
   )
 }

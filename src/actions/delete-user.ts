@@ -1,10 +1,10 @@
 'use server'
 
 import { Collections } from '@promo/collections'
-import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
 import { UserSituationEnum } from '@promo/enum/user-situation'
-import { serverActionOutputSchema } from '@promo/schemas/server-action-output'
 import { cleanUserId } from '@promo/utils/clean-user-id'
+import { returnsDefaultActionMessage } from '@promo/utils/returns-default-action-message'
+import { firestore } from 'firebase-admin'
 import { z } from 'zod'
 
 import { authProcedure } from './procedures/auth-procedure'
@@ -16,7 +16,6 @@ export const deleteUserAction = authProcedure
       userId: z.string().min(1, 'User ID is required'),
     }),
   )
-  .output(serverActionOutputSchema)
   .handler(async ({ input, ctx }) => {
     const { userId } = input
 
@@ -28,36 +27,31 @@ export const deleteUserAction = authProcedure
 
     const userDoc = await userRef.get()
     if (!userDoc.exists) {
-      return {
+      return returnsDefaultActionMessage({
         success: false,
-        error: {
-          code: FirebaseErrorCode.USER_NOT_FOUND,
-          message: 'User not found',
-        },
-      }
+        message: 'User not found',
+      })
     }
 
     if (userDoc.data()?.situation === UserSituationEnum.ACTIVE) {
-      return {
+      return returnsDefaultActionMessage({
         success: false,
-        error: {
-          code: FirebaseErrorCode.OBJECT_NOT_DISABLED,
-          message: `User with ID ${userRef.id} is not disabled and cannot be deleted`,
-        },
-      }
+        message: `User with ID ${userRef.id} is not disabled and cannot be deleted`,
+      })
     }
 
     await userRef.set(
       {
         situation: UserSituationEnum.DELETED,
+        updatedAt: firestore.Timestamp.now().toMillis(),
       },
       {
         merge: true,
       },
     )
 
-    return {
+    return returnsDefaultActionMessage({
       success: true,
-      data: { message: 'User deleted successfully' },
-    }
+      message: 'User deleted successfully',
+    })
   })

@@ -1,10 +1,10 @@
 'use server'
 
 import { Collections } from '@promo/collections'
-import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
 import { UserSituationEnum } from '@promo/enum/user-situation'
-import { serverActionOutputSchema } from '@promo/schemas/server-action-output'
 import { cleanUserId } from '@promo/utils/clean-user-id'
+import { returnsDefaultActionMessage } from '@promo/utils/returns-default-action-message'
+import { firestore } from 'firebase-admin'
 import { z } from 'zod'
 
 import { authProcedure } from './procedures/auth-procedure'
@@ -16,7 +16,6 @@ export const disableUserBatchAction = authProcedure
       users: z.array(z.string().min(1, 'User ID is required')),
     }),
   )
-  .output(serverActionOutputSchema)
   .handler(async ({ input, ctx }) => {
     const { users } = input
     const cleanedUserIds = users.map((userId) => cleanUserId(userId))
@@ -28,18 +27,16 @@ export const disableUserBatchAction = authProcedure
     for await (const userRef of usersRef) {
       const userDoc = await userRef.get()
       if (!userDoc.exists) {
-        return {
+        return returnsDefaultActionMessage({
           success: false,
-          error: {
-            code: FirebaseErrorCode.USER_NOT_FOUND,
-            message: `User with ID ${userRef.id} not found`,
-          },
-        }
+          message: `User with ID ${userRef.id} not found`,
+        })
       }
 
       await userRef.set(
         {
           situation: UserSituationEnum.INACTIVE,
+          updatedAt: firestore.Timestamp.now().toMillis(),
         },
         {
           merge: true,
@@ -47,8 +44,8 @@ export const disableUserBatchAction = authProcedure
       )
     }
 
-    return {
+    return returnsDefaultActionMessage({
       success: true,
-      data: { message: 'Users disabled successfully' },
-    }
+      message: 'Users disabled successfully',
+    })
   })

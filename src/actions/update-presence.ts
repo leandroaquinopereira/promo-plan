@@ -1,9 +1,9 @@
 'use server'
 
 import { Collections } from '@promo/collections'
-import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
 import { UserStatusEnum } from '@promo/enum/user-status'
 import { cleanUserId } from '@promo/utils/clean-user-id'
+import { returnsDefaultActionMessage } from '@promo/utils/returns-default-action-message'
 import { z } from 'zod'
 
 import { authProcedure } from './procedures/auth-procedure'
@@ -13,7 +13,7 @@ export const updateUserPresenceAction = authProcedure
   .input(
     z.object({
       userId: z.string().min(1, 'User ID is required'),
-      situation: z.enum(['online', 'offline', 'working']).optional(),
+      situation: z.nativeEnum(UserStatusEnum).optional(),
     }),
   )
   .handler(async ({ input, ctx }) => {
@@ -26,10 +26,10 @@ export const updateUserPresenceAction = authProcedure
 
     const userDoc = await userRef.get()
     if (!userDoc.exists) {
-      return {
+      return returnsDefaultActionMessage({
         success: false,
-        code: FirebaseErrorCode.USER_NOT_FOUND,
-      }
+        message: 'User not found',
+      })
     }
 
     try {
@@ -37,15 +37,14 @@ export const updateUserPresenceAction = authProcedure
         status: input.situation || UserStatusEnum.OFFLINE,
       })
 
-      return {
+      return returnsDefaultActionMessage({
         success: true,
         message: 'User presence updated successfully',
-      }
+      })
     } catch (error) {
-      return {
+      return returnsDefaultActionMessage({
         success: false,
-        code: FirebaseErrorCode.UNKNOWN_ERROR,
         message: 'Failed to update user presence',
-      }
+      })
     }
   })

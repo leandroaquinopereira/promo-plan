@@ -1,4 +1,8 @@
+import type { CompanyStatusEnum } from '@promo/enum/company-status'
+import type { ProductStatusEnum } from '@promo/enum/product-status'
 import type { TaskType } from '@promo/enum/tasks'
+import type { UserSituationEnum } from '@promo/enum/user-situation'
+import type { UserStatusEnum } from '@promo/enum/user-status'
 import type { DocumentReference, Timestamp } from 'firebase/firestore'
 
 export type VerificationCode = {
@@ -41,11 +45,8 @@ export type Role = {
   id: string
   name: string
   slug: string
-  createdAt: Timestamp | Date
+  createdAt: number
 }
-
-export type UserSituation = 'active' | 'inactive' | 'deleted'
-export type UserStatus = 'online' | 'offline' | 'working'
 
 export interface User {
   id: string
@@ -53,41 +54,41 @@ export interface User {
   phone: string
   password: string
   email?: string
-  role: Role | DocumentReference
+  role: {
+    id: string
+    name: string
+    slug: string
+  }
   active: boolean
   state: string
   city: string
-  createdAt: Timestamp | Date
-  updatedAt: Timestamp | Date
+  createdAt: number
+  updatedAt: number
   createdBy: string
   updatedBy: string
-  lastLoggedAt: Timestamp | Date
+  lastLoggedAt: number
   avatar?: string
-  situation: UserSituation
-  status: UserStatus
+  situation: UserSituationEnum
+  status: UserStatusEnum
 }
-
-export type CompanyStatus = 'active' | 'inactive'
 
 export interface Company {
   id: string
   name: string
-  status: CompanyStatus
-  createdAt: Timestamp | Date
-  updatedAt: Timestamp | Date
+  status: CompanyStatusEnum
+  createdAt: number
+  updatedAt: number
   createdBy: string
   updatedBy: string
 }
-
-export type ProductStatus = 'active' | 'inactive' | 'deleted'
 
 export interface Product {
   id: string
   name: string
   description: string
-  status: ProductStatus
-  createdAt: Timestamp | Date
-  updatedAt: Timestamp | Date
+  status: ProductStatusEnum
+  createdAt: number
+  updatedAt: number
   createdBy: string
   updatedBy: string
 }

@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter } from '@bprogress/next'
 import { deleteCompanyAction } from '@promo/actions/delete-company'
 import { Badge } from '@promo/components/ui/badge'
 import { Button } from '@promo/components/ui/button'
@@ -26,64 +25,66 @@ import { cn } from '@promo/lib/utils'
 import type { Company } from '@promo/types/firebase'
 import { convertFirebaseDate } from '@promo/utils/date-helpers'
 import { Building, Edit3, Eye, MoreHorizontal, Trash2 } from 'lucide-react'
+import { type RefObject, useRef } from 'react'
 import { toast } from 'sonner'
 import { useServerAction } from 'zsa-react'
+
+import type { EditCompanyModalRefs } from './edit-modal'
 
 interface ListTableRowProps {
   data: Company
   isSelected: boolean
   onSelectedRow?: (checked: boolean, companyId: string) => void
+  editCompanyModalRef: RefObject<EditCompanyModalRefs | null>
 }
 
 export function ListTableRow({
   data: company,
   isSelected,
   onSelectedRow,
+  editCompanyModalRef,
 }: ListTableRowProps) {
   const { execute } = useServerAction(deleteCompanyAction)
-  const router = useRouter()
 
   function handleViewCompany() {
-    router.push(`/companies/${company.id}/detail`)
+    editCompanyModalRef.current?.open(company, true)
   }
 
   function handleEditCompany() {
-    router.push(`/companies/${company.id}/edit`)
+    editCompanyModalRef.current?.open(company, false)
   }
 
   async function handleDeleteCompany() {
+    const toastId = toast.loading('Deletando empresa...')
     try {
-      toast.promise(
-        execute({
-          id: company.id,
-        }),
-        {
-          loading: 'Deletando empresa...',
-          success: (_result) => {
-            const [result, resultError] = _result
+      const [result, resultError] = await execute({
+        id: company.id,
+      })
 
-            if (resultError) {
-              return resultError.message
-            }
+      if (resultError) {
+        toast.error('Erro ao deletar empresa', {
+          description: resultError.message || 'Tente novamente mais tarde',
+          id: toastId,
+        })
+        return
+      }
 
-            if (!result?.success) {
-              return result?.error?.message || 'Erro ao deletar empresa'
-            }
+      if (result.success) {
+        toast.success(result.message, {
+          id: toastId,
+        })
 
-            return 'Empresa deletada com sucesso.'
-          },
-          error: (error) => {
-            if (error instanceof Error) {
-              return error.message
-            }
+        return
+      }
 
-            return 'Erro ao deletar empresa.'
-          },
-        },
-      )
+      toast.error('Erro ao deletar empresa', {
+        description: result.message || 'Tente novamente mais tarde',
+        id: toastId,
+      })
     } catch (error) {
       toast.error('Erro ao deletar empresa', {
         description: 'Tente novamente mais tarde',
+        id: toastId,
       })
     }
   }
@@ -124,14 +125,11 @@ export function ListTableRow({
         <Tooltip>
           <TooltipTrigger className="cursor-help">
             <div className="text-xs text-muted-foreground">
-              {dayjsApi(convertFirebaseDate(company.createdAt)).fromNow()}
+              {dayjsApi(company.createdAt).fromNow()}
             </div>
           </TooltipTrigger>
           <TooltipContent>
-            Criado em:{' '}
-            {dayjsApi(convertFirebaseDate(company.createdAt)).format(
-              'DD/MM/YYYY HH:mm',
-            )}
+            Criado em: {dayjsApi(company.createdAt).format('DD/MM/YYYY HH:mm')}
           </TooltipContent>
         </Tooltip>
       </TableCell>

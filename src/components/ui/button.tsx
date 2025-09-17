@@ -39,6 +39,8 @@ type ButtonProps = React.ComponentProps<'button'> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
     isLoading?: boolean
+    icon?: React.ElementType
+    iconPosition?: 'left' | 'right'
   }
 
 function Button({
@@ -49,6 +51,8 @@ function Button({
   isLoading = false,
   disabled = false,
   children,
+  icon: Icon,
+  iconPosition = 'left',
   ...props
 }: ButtonProps) {
   const Comp = asChild ? Slot : 'button'
@@ -60,10 +64,21 @@ function Button({
       className={cn('relative', buttonVariants({ variant, size, className }))}
       {...props}
     >
-      {isLoading && (
-        <Loader className="size-4 animate-spin text-white dark:text-black" />
-      )}
-      {children}
+      <div className="flex items-center gap-2">
+        {isLoading && iconPosition === 'left' && (
+          <Loader className="size-4 animate-spin" />
+        )}
+        {iconPosition === 'left' && !isLoading && Icon && (
+          <Icon className="size-4" />
+        )}
+        {children}
+        {iconPosition === 'right' && !isLoading && Icon && (
+          <Icon className="size-4" />
+        )}
+        {isLoading && iconPosition === 'right' && (
+          <Loader className="size-4 animate-spin" />
+        )}
+      </div>
     </Comp>
   )
 }

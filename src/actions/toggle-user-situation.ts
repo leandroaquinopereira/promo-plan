@@ -1,12 +1,10 @@
 'use server'
 
 import { Collections } from '@promo/collections'
-import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
-import { getFirebaseApps } from '@promo/lib/firebase/server'
-import { auth } from '@promo/lib/next-auth/auth'
-import { serverActionOutputSchema } from '@promo/schemas/server-action-output'
+import { UserSituationEnum } from '@promo/enum/user-situation'
+import { returnsDefaultActionMessage } from '@promo/utils/returns-default-action-message'
+import { firestore } from 'firebase-admin'
 import { z } from 'zod'
-import { createServerAction } from 'zsa'
 
 import { authProcedure } from './procedures/auth-procedure'
 
@@ -15,10 +13,9 @@ export const toggleUserSituationAction = authProcedure
   .input(
     z.object({
       userId: z.string(),
-      situation: z.enum(['active', 'inactive']),
+      situation: z.nativeEnum(UserSituationEnum),
     }),
   )
-  .output(serverActionOutputSchema)
   .handler(async ({ input, ctx }) => {
     const cleanedUserId = input.userId
       .trim()
@@ -31,24 +28,22 @@ export const toggleUserSituationAction = authProcedure
 
     const userDoc = await userRef.get()
     if (!userDoc.exists) {
-      return {
+      return returnsDefaultActionMessage({
         success: false,
-        error: {
-          code: FirebaseErrorCode.USER_NOT_FOUND,
-          message: 'User not found',
-        },
-      }
+        message: 'User not found',
+      })
     }
 
     await userRef.set(
       {
         situation: input.situation,
+        updatedAt: firestore.Timestamp.now().toMillis(),
       },
       { merge: true },
     )
 
-    return {
+    return returnsDefaultActionMessage({
       success: true,
       message: 'User situation toggled successfully.',
-    }
+    })
   })

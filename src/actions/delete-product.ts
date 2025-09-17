@@ -1,14 +1,14 @@
 'use server'
 
 import { Collections } from '@promo/collections'
-import { CompanyStatusEnum } from '@promo/enum/company-status'
+import { ProductStatusEnum } from '@promo/enum/product-status'
 import { returnsDefaultActionMessage } from '@promo/utils/returns-default-action-message'
 import { firestore } from 'firebase-admin'
 import { z } from 'zod'
 
 import { authProcedure } from './procedures/auth-procedure'
 
-export const deleteCompanyAction = authProcedure
+export const deleteProductAction = authProcedure
   .createServerAction()
   .input(
     z.object({
@@ -18,25 +18,25 @@ export const deleteCompanyAction = authProcedure
   .handler(async ({ input, ctx }) => {
     const { id } = input
 
-    const company = await ctx.apps.firestore
-      .collection(Collections.COMPANIES)
+    const product = await ctx.apps.firestore
+      .collection(Collections.PRODUCTS)
       .doc(id)
       .get()
 
-    if (!company.exists) {
+    if (!product.exists) {
       return returnsDefaultActionMessage({
-        message: 'Empresa não encontrada',
+        message: 'Produto não encontrado',
         success: false,
       })
     }
 
-    await company.ref.update({
-      status: CompanyStatusEnum.DELETED,
+    await product.ref.update({
+      status: ProductStatusEnum.DELETED,
       updatedAt: firestore.Timestamp.now().toMillis(),
     })
 
     return returnsDefaultActionMessage({
-      message: 'Empresa deletada com sucesso',
+      message: 'Produto deletado com sucesso',
       success: true,
     })
   })

@@ -27,7 +27,7 @@ import { UserSituationEnum } from '@promo/enum/user-situation'
 import { UserStatusEnum } from '@promo/enum/user-status'
 import { dayjsApi } from '@promo/lib/dayjs'
 import { cn } from '@promo/lib/utils'
-import type { User, UserSituation } from '@promo/types/firebase'
+import type { User } from '@promo/types/firebase'
 import { formatPhoneNumber } from '@promo/utils/format-phone-number'
 import { formatWhatsAppUrl } from '@promo/utils/format-whats-app-url'
 import { getUserInitials } from '@promo/utils/get-user-initials'
@@ -42,119 +42,106 @@ import {
   UserX,
 } from 'lucide-react'
 import Link from 'next/link'
+import type { RefObject } from 'react'
 import { toast } from 'sonner'
 import { useServerAction } from 'zsa-react'
+
+import type { EditUserModalRefs } from './edit-modal'
 
 type ListTableRowProps = {
   data: User
   onSelectedRow?: (checked: boolean, userId: string) => void
   isSelected?: boolean
+  editUserModalRef: RefObject<EditUserModalRefs | null>
 }
 
 export function ListTableRow({
   data: user,
   isSelected,
   onSelectedRow,
+  editUserModalRef,
 }: ListTableRowProps) {
   const { execute } = useServerAction(toggleUserSituationAction)
   const { execute: deleteUser } = useServerAction(deleteUserAction)
 
   const router = useRouter()
 
-  function getPermissionBadgeVariant(permission: 'Admin' | 'Freelancer') {
-    return permission === 'Admin' ? 'default' : 'secondary'
+  function getPermissionBadgeVariant(permission: string) {
+    return permission === 'admin' ? 'default' : 'secondary'
   }
 
   async function handleToggleUserSituation(
-    specificSituation: UserSituation | undefined = undefined,
+    specificSituation: UserSituationEnum = UserSituationEnum.ACTIVE,
   ) {
+    const toastId = toast.loading('Alterando situação do usuário...')
     try {
-      toast.promise(
-        execute({
-          userId: user.id,
-          situation:
-            specificSituation || user.situation === UserSituationEnum.ACTIVE
-              ? UserSituationEnum.INACTIVE
-              : UserSituationEnum.ACTIVE,
-        }),
-        {
-          loading:
-            user.situation === 'active'
-              ? 'Desativando usuário...'
-              : 'Ativando usuário...',
-          success: (result) => {
-            if (!result || typeof result !== 'object') {
-              throw new Error('Resposta inválida do servidor')
-            }
+      const [result, resultError] = await execute({
+        userId: user.id,
+        situation: specificSituation,
+      })
 
-            if ('error' in result && result.error) {
-              throw new Error(
-                // @ts-expect-error ignore error type for now
-                result.error?.message || 'Erro ao alterar situação do usuário',
-              )
-            }
+      if (resultError) {
+        toast.error('Erro ao alterar situação do usuário', {
+          description: resultError.message || 'Tente novamente mais tarde',
+          id: toastId,
+        })
 
-            if ('success' in result && !result.success) {
-              throw new Error('Falha ao alterar situação do usuário')
-            }
+        return
+      }
 
-            return user.situation === 'active'
-              ? 'Usuário desativado com sucesso.'
-              : 'Usuário ativado com sucesso.'
-          },
-          error: (error) => {
-            if (error instanceof Error) {
-              return error.message
-            }
+      if (result.success) {
+        toast.success('Situação do usuário alterada com sucesso', {
+          id: toastId,
+        })
 
-            return user.situation === 'active'
-              ? 'Erro ao desativar usuário.'
-              : 'Erro ao ativar usuário.'
-          },
-        },
-      )
+        return
+      }
+
+      toast.error('Erro ao alterar situação do usuário', {
+        description: result.message || 'Tente novamente mais tarde',
+        id: toastId,
+      })
     } catch (error) {
-      console.error('Unexpected error:', error)
+      toast.error('Erro ao alterar situação do usuário', {
+        id: toastId,
+      })
     }
   }
 
   async function handleDeleteUser() {
+    const toastId = toast.loading('Deletando usuário...')
     try {
-      toast.promise(
-        deleteUser({
-          userId: user.id,
-        }),
-        {
-          loading: 'Deletando usuário...',
-          success: (result) => {
-            if (!result || typeof result !== 'object') {
-              throw new Error('Resposta inválida do servidor')
-            }
+      const [result, resultError] = await deleteUser({
+        userId: user.id,
+      })
 
-            if ('error' in result && result.error) {
-              throw new Error(
-                // @ts-expect-error ignore error type for now
-                result.error?.message || 'Erro ao deletar usuário',
-              )
-            }
+      if (resultError) {
+        toast.error('Erro ao deletar usuário', {
+          description: resultError.message || 'Tente novamente mais tarde',
+          id: toastId,
+        })
 
-            if ('success' in result && !result.success) {
-              throw new Error('Falha ao deletar usuário')
-            }
+        return
+      }
 
-            return 'Usuário deletado com sucesso.'
-          },
-          error: (error) => {
-            if (error instanceof Error) {
-              return error.message
-            }
+      if (result?.success) {
+        toast.success('Usuário deletado com sucesso', {
+          description:
+            result?.message || 'O usuário foi removido permanentemente.',
+          id: toastId,
+        })
 
-            return 'Erro ao deletar usuário.'
-          },
-        },
-      )
+        return
+      }
+
+      toast.error('Erro ao deletar usuário', {
+        description: result?.message || 'Tente novamente mais tarde',
+        id: toastId,
+      })
     } catch (error) {
-      console.error('Unexpected error:', error)
+      toast.error('Erro ao deletar usuário', {
+        id: toastId,
+      })
     }
   }
 
@@ -186,7 +173,11 @@ export function ListTableRow({
   }
 
   return (
-    <TableRow className={cn(user.situation !== 'active' && 'opacity-50')}>
+    <TableRow
+      className={cn(
+        user.situation !== UserSituationEnum.ACTIVE && 'opacity-50',
+      )}
+    >
       <TableCell>
         <Checkbox
           className="ml-2 mb-3"
@@ -236,43 +227,22 @@ export function ListTableRow({
         </div>
       </TableCell>
       <TableCell>
-        <Badge variant={getPermissionBadgeVariant((user.role as any).slug)}>
-          {(user.role as any).slug === 'admin' ? (
-            <Shield className="size-3" />
-          ) : null}
-          {(user.role as any).name}
+        <Badge variant={getPermissionBadgeVariant(user.role.slug)}>
+          {user.role.slug === 'admin' ? <Shield className="size-3" /> : null}
+          {user.role.name}
         </Badge>
       </TableCell>
-      {/* <TableCell>
-        <div className="text-sm font-medium">{user.guideCount}</div>
-      </TableCell> */}
-      {/* <TableCell>
-        <div className="flex items-center gap-1">
-          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-          <span className="text-sm font-medium">{user.rating}</span>
-        </div>
-      </TableCell> */}
       <TableCell>
         <Tooltip>
           <TooltipTrigger disabled={!user.lastLoggedAt} className="cursor-help">
             <div className="text-xs text-muted-foreground capitalize">
-              {user.lastLoggedAt
-                ? dayjsApi(
-                    user.lastLoggedAt instanceof Date
-                      ? user.lastLoggedAt
-                      : user.lastLoggedAt.toDate(),
-                  ).fromNow()
-                : '-'}
+              {user.lastLoggedAt ? dayjsApi(user.lastLoggedAt).fromNow() : '-'}
             </div>
           </TooltipTrigger>
           <TooltipContent>
             Último acesso:{' '}
             {user.lastLoggedAt
-              ? dayjsApi(
-                  user.lastLoggedAt instanceof Date
-                    ? user.lastLoggedAt
-                    : user.lastLoggedAt.toDate(),
-                ).format('DD/MM/YYYY HH:mm')
+              ? dayjsApi(user.lastLoggedAt).format('DD/MM/YYYY HH:mm')
               : 'Nunca'}
           </TooltipContent>
         </Tooltip>
@@ -299,20 +269,20 @@ export function ListTableRow({
               <DropdownMenuLabel>Ações</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => router.push(`/users/${user.id}/detail`)}
+                onClick={() => editUserModalRef.current?.open(user, true)}
               >
                 <Eye className="size-4 mr-2" />
                 Visualizar
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => router.push(`/users/${user.id}/edit`)}
+                onClick={() => editUserModalRef.current?.open(user, false)}
               >
                 <Edit3 className="size-4 mr-2" />
                 Editar
               </DropdownMenuItem>
-              {user.situation !== 'deleted' && (
+              {user.situation !== UserSituationEnum.DELETED && (
                 <DropdownMenuItem onClick={() => handleToggleUserSituation()}>
-                  {user.situation === 'active' ? (
+                  {user.situation === UserSituationEnum.ACTIVE ? (
                     <div className="flex items-center gap-2">
                       <UserX className="size-4 mr-2" />
                       Desativar
@@ -325,8 +295,10 @@ export function ListTableRow({
                   )}
                 </DropdownMenuItem>
               )}
-              {user.situation !== 'active' && <DropdownMenuSeparator />}
-              {user.situation === 'deleted' && (
+              {user.situation !== UserSituationEnum.ACTIVE && (
+                <DropdownMenuSeparator />
+              )}
+              {user.situation === UserSituationEnum.DELETED && (
                 <DropdownMenuItem
                   onClick={() =>
                     handleToggleUserSituation(UserSituationEnum.ACTIVE)

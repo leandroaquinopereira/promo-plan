@@ -33,6 +33,7 @@ import { Package } from 'lucide-react'
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs'
 import { useEffect, useRef, useState } from 'react'
 
+import { EditProductModal, type EditProductModalRefs } from './edit-modal'
 import { ListPaginationSection } from './list-pagination-section'
 import { ListTableHeader } from './list-table-header'
 import { ListTableRow } from './list-table-row'
@@ -44,6 +45,8 @@ export function ListContent() {
     data: [],
     total: 0,
   })
+
+  const editProductModalRef = useRef<EditProductModalRefs | null>(null)
 
   // Query states for filters
   const [search] = useQueryState('search', parseAsString.withDefault(''))
@@ -193,6 +196,7 @@ export function ListContent() {
                     data={product}
                     isSelected={selectedRows.has(product.id)}
                     onSelectedRow={handleSelectedRow}
+                    editProductModalRef={editProductModalRef}
                   />
                 ))}
 
@@ -225,6 +229,8 @@ export function ListContent() {
           totalProductsShowing={response.data.length}
         />
       </Card>
+
+      <EditProductModal ref={editProductModalRef} />
     </MotionDiv>
   )
 }

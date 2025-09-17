@@ -1,11 +1,10 @@
 'use server'
 
 import { Collections } from '@promo/collections'
-import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
 import { UserSituationEnum } from '@promo/enum/user-situation'
-import { serverActionOutputSchema } from '@promo/schemas/server-action-output'
 import { hashPassword } from '@promo/utils/crypto'
 import { generateSubstrings } from '@promo/utils/generates-substrings-to-query-search'
+import { returnsDefaultActionMessage } from '@promo/utils/returns-default-action-message'
 import { firestore } from 'firebase-admin'
 import { z } from 'zod'
 
@@ -25,7 +24,6 @@ export const createUserAction = authProcedure
       }),
     }),
   )
-  .output(serverActionOutputSchema)
   .handler(async ({ input, ctx }) => {
     const { apps, session } = ctx
     const phoneFormatted = input.phone.replace(/\D/g, '').replace('+55', '')
@@ -36,13 +34,10 @@ export const createUserAction = authProcedure
 
     const userSaved = await userSavedRef.get()
     if (userSaved.exists) {
-      return {
+      return returnsDefaultActionMessage({
+        message: 'Usuário já cadastrado com este telefone',
         success: false,
-        error: {
-          message: 'Usuário já cadastrado com este telefone',
-          code: FirebaseErrorCode.USER_ALREADY_EXISTS,
-        },
-      }
+      })
     }
 
     const roleRef = apps.firestore
@@ -66,8 +61,8 @@ export const createUserAction = authProcedure
       .collection(Collections.USERS)
       .doc(phoneFormatted)
       .set({
-        createdAt: firestore.Timestamp.now(),
-        updatedAt: firestore.Timestamp.now(),
+        createdAt: firestore.Timestamp.now().toMillis(),
+        updatedAt: firestore.Timestamp.now().toMillis(),
         createdBy: session.user.id,
         updatedBy: session.user.id,
         situation: UserSituationEnum.ACTIVE,
@@ -81,8 +76,8 @@ export const createUserAction = authProcedure
         searchQuery: Array.from(new Set(searchSubstrings)),
       })
 
-    return {
+    return returnsDefaultActionMessage({
+      message: 'Usuário cadastrado com sucesso',
       success: true,
-      message: 'User created successfully',
-    }
+    })
   })

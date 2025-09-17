@@ -1,7 +1,6 @@
 import { MotionDiv } from '@promo/components/framer-motion/motion-div'
-import { Button } from '@promo/components/ui/button'
-import { Plus } from 'lucide-react'
-import Link from 'next/link'
+
+import { CreateCompanyModal } from './create-modal'
 
 export async function HeaderSection() {
   return (
@@ -18,12 +17,7 @@ export async function HeaderSection() {
         </p>
       </div>
       <div className="gap-3 grid grid-cols-1 @xl:flex @xl:items-start">
-        <Link href="/companies/register">
-          <Button className="w-full @lg:w-auto" variant="default">
-            <Plus className="size-4" />
-            Nova Empresa
-          </Button>
-        </Link>
+        <CreateCompanyModal />
       </div>
     </MotionDiv>
   )

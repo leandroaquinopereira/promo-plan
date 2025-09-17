@@ -1,17 +1,11 @@
 'use server'
 
 import { Collections } from '@promo/collections'
-import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
-import { UserSituationEnum } from '@promo/enum/user-situation'
-import { getFirebaseApps } from '@promo/lib/firebase/server'
-import { auth } from '@promo/lib/next-auth/auth'
-import { serverActionOutputSchema } from '@promo/schemas/server-action-output'
 import { cleanUserId } from '@promo/utils/clean-user-id'
-import { hashPassword } from '@promo/utils/crypto'
 import { generateSubstrings } from '@promo/utils/generates-substrings-to-query-search'
+import { returnsDefaultActionMessage } from '@promo/utils/returns-default-action-message'
 import { firestore } from 'firebase-admin'
 import { z } from 'zod'
-import { createServerAction } from 'zsa'
 
 import { authProcedure } from './procedures/auth-procedure'
 
@@ -27,7 +21,6 @@ export const updateUserAction = authProcedure
       userId: z.string().min(1, 'ID do usuário é obrigatório'),
     }),
   )
-  .output(serverActionOutputSchema)
   .handler(async ({ input, ctx }) => {
     const { apps, session } = ctx
     const phoneFormatted = cleanUserId(input.phone)
@@ -39,13 +32,10 @@ export const updateUserAction = authProcedure
 
     const userSaved = await userSavedRef.get()
     if (userSaved.exists && userSaved.id !== cleanedUserId) {
-      return {
+      return returnsDefaultActionMessage({
         success: false,
-        error: {
-          message: 'Usuário já cadastrado com este telefone',
-          code: FirebaseErrorCode.USER_ALREADY_EXISTS,
-        },
-      }
+        message: 'Usuário já cadastrado com este telefone',
+      })
     }
 
     const userRef = apps.firestore
@@ -54,18 +44,23 @@ export const updateUserAction = authProcedure
 
     const user = await userRef.get()
     if (!user.exists) {
-      return {
+      return returnsDefaultActionMessage({
         success: false,
-        error: {
-          message: 'Usuário não encontrado',
-          code: FirebaseErrorCode.OBJECT_NOT_FOUND,
-        },
-      }
+        message: 'Usuário não encontrado',
+      })
     }
 
-    const roleRef = apps.firestore
+    const roleRef = await apps.firestore
       .collection(Collections.ROLES)
       .doc(input.permission)
+      .get()
+
+    if (!roleRef.exists) {
+      return returnsDefaultActionMessage({
+        success: false,
+        message: 'Permissão não encontrada',
+      })
+    }
 
     const searchNameSubstrings = generateSubstrings(input.name)
     const searchPhoneSubstrings = generateSubstrings(phoneFormatted)
@@ -77,9 +72,12 @@ export const updateUserAction = authProcedure
       .doc(cleanedUserId)
       .update({
         ...user.data(),
-        updatedAt: firestore.Timestamp.now(),
+        updatedAt: firestore.Timestamp.now().toMillis(),
         updatedBy: session.user.id,
-        role: roleRef,
+        role: {
+          id: input.permission,
+          name: roleRef.data()?.name || '',
+        },
         name: input.name,
         phone: phoneFormatted,
         state: input.state,
@@ -87,8 +85,8 @@ export const updateUserAction = authProcedure
         searchQuery: Array.from(new Set(searchSubstrings)),
       })
 
-    return {
+    return returnsDefaultActionMessage({
       success: true,
-      message: 'User created successfully',
-    }
+      message: 'Usuário atualizado com sucesso',
+    })
   })

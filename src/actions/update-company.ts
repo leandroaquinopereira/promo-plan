@@ -1,10 +1,9 @@
 'use server'
 
 import { Collections } from '@promo/collections'
-import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
 import { CompanyStatusEnum } from '@promo/enum/company-status'
-import { serverActionOutputSchema } from '@promo/schemas/server-action-output'
 import { generateSubstrings } from '@promo/utils/generates-substrings-to-query-search'
+import { returnsDefaultActionMessage } from '@promo/utils/returns-default-action-message'
 import { firestore } from 'firebase-admin'
 import { z } from 'zod'
 
@@ -19,7 +18,6 @@ export const updateCompanyAction = authProcedure
       status: z.nativeEnum(CompanyStatusEnum),
     }),
   )
-  .output(serverActionOutputSchema)
   .handler(async ({ input, ctx }) => {
     const { id, name, status } = input
 
@@ -29,13 +27,10 @@ export const updateCompanyAction = authProcedure
       .get()
 
     if (!company.exists) {
-      return {
+      return returnsDefaultActionMessage({
+        message: 'Empresa não encontrada',
         success: false,
-        error: {
-          code: FirebaseErrorCode.OBJECT_NOT_FOUND,
-          message: 'Empresa não encontrada',
-        },
-      }
+      })
     }
 
     const searchQuery = generateSubstrings(name)
@@ -44,10 +39,11 @@ export const updateCompanyAction = authProcedure
       searchQuery: Array.from(searchQuery),
       status,
       name,
-      updatedAt: firestore.Timestamp.now(),
+      updatedAt: firestore.Timestamp.now().toMillis(),
     })
 
-    return {
+    return returnsDefaultActionMessage({
+      message: 'Empresa atualizada com sucesso',
       success: true,
-    }
+    })
   })
