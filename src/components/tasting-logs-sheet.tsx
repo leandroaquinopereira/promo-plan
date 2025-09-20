@@ -133,20 +133,12 @@ export function TastingLogsSheet({
                           <div className="flex items-center gap-1 text-xs text-muted-foreground">
                             <Clock className="size-3" />
                             <span>
-                              {dayjsApi(
-                                log.createdAt instanceof Date
-                                  ? log.createdAt
-                                  : log.createdAt.toDate(),
-                              ).format('DD/MM/YYYY HH:mm')}
+                              {dayjsApi(log.createdAt).format(
+                                'DD/MM/YYYY HH:mm',
+                              )}
                             </span>
                             <span>•</span>
-                            <span>
-                              {dayjsApi(
-                                log.createdAt instanceof Date
-                                  ? log.createdAt
-                                  : log.createdAt.toDate(),
-                              ).fromNow()}
-                            </span>
+                            <span>{dayjsApi(log.createdAt).fromNow()}</span>
                           </div>
                         </div>
 

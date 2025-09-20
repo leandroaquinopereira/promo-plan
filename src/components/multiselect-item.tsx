@@ -1,7 +1,7 @@
 import { cn } from '@promo/lib/utils'
 import type { ClassValue } from 'clsx'
 import { XIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import type { Option } from './multi-select-with-quantity'
 import { Badge } from './ui/badge'
@@ -31,6 +31,10 @@ export function MultiselectItem({
   const [quantity, setQuantity] = useState(initialQuantity || 1)
   const [open, setOpen] = useState(false)
 
+  useEffect(() => {
+    setQuantity(initialQuantity || 1)
+  }, [initialQuantity])
+
   return (
     <div
       key={option.value}
@@ -55,7 +59,7 @@ export function MultiselectItem({
               {option.label}
             </span>
             <Badge variant="secondary">
-              <span className="tabular-nums">{option.quantity || 1}</span>
+              <span className="tabular-nums">{quantity}</span>
               <span className="text-[10px] opacity-80 font-normal">un.</span>
             </Badge>
           </button>
@@ -93,8 +97,8 @@ export function MultiselectItem({
                   Quantidade
                 </label>
                 <Badge>
-                  Total: {option.quantity || 1} unidade
-                  {(option.quantity || 1) !== 1 ? 's' : ''}
+                  Total: {quantity} unidade
+                  {quantity !== 1 ? 's' : ''}
                 </Badge>
               </div>
 
@@ -112,7 +116,7 @@ export function MultiselectItem({
                 size="sm"
                 className="flex-1 h-9 text-xs font-medium rounded border-border/60 hover:bg-accent/50 transition-all duration-200"
                 onClick={() => setQuantity(1)}
-                disabled={disabled || (option.quantity || 1) === 1}
+                disabled={disabled || quantity === 1}
               >
                 Resetar
               </Button>

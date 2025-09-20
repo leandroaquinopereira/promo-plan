@@ -1,6 +1,4 @@
-import type { ProductStatus } from '@promo/types/firebase'
-
-export const productStatusMap: Record<ProductStatus, string> = {
+export const productStatusMap: Record<string, string> = {
   active: 'Ativo',
   inactive: 'Inativo',
   deleted: 'Deletado',

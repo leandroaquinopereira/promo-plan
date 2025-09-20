@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@promo/components/ui/select'
+import { Switch } from '@promo/components/ui/switch'
 import { brazilianStates } from '@promo/constants/brazilian-states'
 import { CompanyStatusEnum } from '@promo/enum/company-status'
 import { firestore } from '@promo/lib/firebase/client'
@@ -35,7 +36,12 @@ import { EMPTY_STRING } from '@promo/utils/generates-substrings-to-query-search'
 import { normalizeText } from '@promo/utils/normalize-text'
 import { and, collection, getDocs, query, where } from 'firebase/firestore'
 import { X } from 'lucide-react'
-import { parseAsInteger, parseAsString, useQueryState } from 'nuqs'
+import {
+  parseAsBoolean,
+  parseAsInteger,
+  parseAsString,
+  useQueryState,
+} from 'nuqs'
 import { useMemo } from 'react'
 
 export function FilterSection() {
@@ -92,6 +98,11 @@ export function FilterSection() {
     }
   }, [startDate, endDate])
 
+  const [onlyInProcess, setOnlyInProcess] = useQueryState(
+    'only-in-process',
+    parseAsBoolean.withDefault(false),
+  )
+
   const handleDateRangeChange = (range: DateRange | null) => {
     if (!range) {
       setStartDate('')
@@ -112,6 +123,7 @@ export function FilterSection() {
     setStatus('all')
     setStartDate('')
     setEndDate('')
+    setOnlyInProcess(false)
   }
 
   async function fetchCompanies(_query: string = '') {
@@ -153,7 +165,8 @@ export function FilterSection() {
     city ||
     status !== 'all' ||
     startDate !== '' ||
-    endDate !== ''
+    endDate !== '' ||
+    onlyInProcess
 
   return (
     <MotionDiv
@@ -272,6 +285,16 @@ export function FilterSection() {
                 value={dateRange}
                 onChange={handleDateRangeChange}
                 className="w-full"
+              />
+            </div>
+
+            <div className="flex min-w-0 flex-col gap-2 @sm:col-span-2 @lg:col-span-1">
+              <Label className="text-sm font-medium">Apenas em andamento</Label>
+              <Switch
+                checked={onlyInProcess}
+                onCheckedChange={(checked) => {
+                  setOnlyInProcess(checked)
+                }}
               />
             </div>
           </div>

@@ -1,10 +1,9 @@
 'use server'
 
 import { Collections } from '@promo/collections'
-import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
-import { dayjsApi } from '@promo/lib/dayjs'
-import { serverActionOutputSchema } from '@promo/schemas/server-action-output'
+import { buildValueForCombobox } from '@promo/utils/build-value-for-combobox'
 import { extractValueFromCombobox } from '@promo/utils/extract-value-from-combobox'
+import { returnsDefaultActionMessage } from '@promo/utils/returns-default-action-message'
 import { firestore } from 'firebase-admin'
 import { z } from 'zod'
 
@@ -14,36 +13,35 @@ export const updateTastingAction = authProcedure
   .createServerAction()
   .input(
     z.object({
-      id: z.number({
+      id: z.string({
         required_error: 'ID é obrigatório',
       }),
       promoter: z.string({
         required_error: 'Promotor é obrigatório',
       }),
-      startDate: z.coerce.date({
-        required_error: 'Data de início é obrigatória',
-      }),
-      endDate: z.coerce.date({
-        required_error: 'Data de término é obrigatória',
-      }),
       company: z.string({
         required_error: 'Empresa é obrigatória',
       }),
       products: z.array(
-        z.string({
-          required_error: 'Produtos são obrigatórios',
+        z.object({
+          value: z.string({
+            required_error: 'Produtos são obrigatórios',
+          }),
+          quantity: z
+            .number({
+              required_error: 'Quantidade é obrigatória',
+            })
+            .optional()
+            .default(1),
         }),
       ),
       notes: z.string().optional(),
     }),
   )
-  .output(serverActionOutputSchema)
   .handler(async ({ input, ctx }) => {
     const {
       id,
       promoter: promoterInput,
-      startDate,
-      endDate,
       company: companyInput,
       products: productsInput,
       notes,
@@ -55,13 +53,10 @@ export const updateTastingAction = authProcedure
 
     const tastingDoc = await tastingRef.get()
     if (!tastingDoc.exists) {
-      return {
+      return returnsDefaultActionMessage({
+        message: 'Degustação não encontrada',
         success: false,
-        error: {
-          message: 'Degustação não encontrada',
-          code: FirebaseErrorCode.OBJECT_NOT_FOUND,
-        },
-      }
+      })
     }
 
     const promoterId = extractValueFromCombobox(promoterInput)
@@ -75,7 +70,7 @@ export const updateTastingAction = authProcedure
       .doc(companyId)
 
     const productsIds = productsInput.map((product) =>
-      extractValueFromCombobox(product),
+      extractValueFromCombobox(product.value),
     )
 
     const productsRefs = productsIds.map((productId) =>
@@ -91,44 +86,46 @@ export const updateTastingAction = authProcedure
     const objects = [promoter, company, ...products]
 
     if (objects.some((obj) => !obj.exists)) {
-      return {
+      return returnsDefaultActionMessage({
+        message: 'Promotor, empresa ou produtos não encontrados',
         success: false,
-        error: {
-          message: 'Promotor, empresa ou produtos não encontrados',
-          code: FirebaseErrorCode.OBJECT_NOT_FOUND,
-        },
-      }
+      })
     }
-
-    const startDateFixed = dayjsApi(startDate)
-      .hour(12)
-      .minute(0)
-      .second(0)
-      .millisecond(0)
-    const endDateFixed = dayjsApi(endDate)
-      .hour(12)
-      .minute(0)
-      .second(0)
-      .millisecond(0)
-
-    console.log('Original startDate:', startDate.toString())
-    console.log('startDate ISO:', startDate.toISOString())
-    console.log(
-      'Firestore timestamp:',
-      firestore.Timestamp.fromDate(startDate).toDate().toString(),
-    )
 
     await tastingRef.update({
-      startDate: firestore.Timestamp.fromDate(startDateFixed.toDate()),
-      endDate: firestore.Timestamp.fromDate(endDateFixed.toDate()),
-      promoter: promoterRef,
-      company: companyRef,
-      products: productsRefs,
+      promoter: {
+        id: promoterId,
+        name: promoter.data()?.name || '',
+        email: promoter.data()?.email || '',
+      },
+      company: {
+        id: companyId,
+        name: company.data()?.name || '',
+      },
+      products: products.reduce((acc, product) => {
+        const productQuantity = productsInput.find(
+          (p) =>
+            p.value ===
+            buildValueForCombobox({
+              label: product.data()?.name || '',
+              value: product.id,
+            }),
+        )?.quantity
+
+        acc.push({
+          id: product.id,
+          name: product.data()?.name || '',
+          quantity: productQuantity || 1,
+        })
+
+        return acc
+      }, [] as any[]),
       notes: notes?.trim() || '',
-      updatedAt: firestore.Timestamp.now(),
+      updatedAt: firestore.Timestamp.now().toMillis(),
     })
 
-    return {
+    return returnsDefaultActionMessage({
+      message: 'Degustação atualizado com sucesso',
       success: true,
-    }
+    })
   })

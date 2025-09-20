@@ -267,13 +267,31 @@ function MultipleSelectorWithQuantity({
         return
       }
 
-      const newOptions = selected.map((s) =>
-        s.value === optionValue ? { ...s, quantity: newQuantity } : s,
-      )
+      const optionToUpdate = selected.find((s) => s.value === optionValue)
+
+      if (!optionToUpdate) {
+        return
+      }
+
+      const newOptions = selected.map((option) => {
+        if (option.value === optionValue) {
+          return { ...option, quantity: newQuantity }
+        }
+
+        const internalOption = internalSelected.find(
+          (s) => s.value === option.value,
+        )
+        if (internalOption) {
+          return internalOption
+        }
+
+        return option
+      })
 
       setSelected(newOptions)
+      setInternalSelected(newOptions)
     },
-    [selected, setSelected, handleUnselect],
+    [selected, setSelected, handleUnselect, internalSelected],
   )
 
   const handleKeyDown = useCallback(
@@ -297,12 +315,16 @@ function MultipleSelectorWithQuantity({
     [handleUnselect, selected],
   )
 
-  useImperativeHandle(ref, () => ({
-    selectedValue: selected,
-    input: inputRef.current as HTMLInputElement,
-    focus: () => inputRef.current?.focus(),
-    reset: () => setSelected([]),
-  }))
+  useImperativeHandle(
+    ref,
+    () => ({
+      selectedValue: internalSelected,
+      input: inputRef.current as HTMLInputElement,
+      focus: () => inputRef.current?.focus(),
+      reset: () => setSelected([]),
+    }),
+    [internalSelected, setSelected],
+  )
 
   useEffect(() => {
     if (open) {

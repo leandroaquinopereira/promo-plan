@@ -30,7 +30,7 @@ import {
 import { PackageIcon } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { parseAsString, useQueryState } from 'nuqs'
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 
 import { Filter } from './filter'
 import { ListPackageRow } from './list-package-row'
@@ -57,6 +57,7 @@ export function ListContent() {
   const [expandedPackages, setExpandedPackages] = useState<Set<string>>(
     new Set(),
   )
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const [search] = useQueryState('search', parseAsString.withDefault(''))
 
@@ -67,8 +68,8 @@ export function ListContent() {
   function canStartTask(pack: Package, task: Task) {
     const beforeTaskIndex = pack.tasks.findIndex((t) => t.id === task.id)
     const now = dayjsApi().format('YYYYMMDD')
-    const dayOfPackage = pack.id.split('_').at(-1)
-    if (now !== dayOfPackage) {
+    const dayOfPackage = pack.id.split('_').at(-1) ?? '99999999'
+    if (now <= dayOfPackage) {
       return false
     }
 
@@ -92,6 +93,15 @@ export function ListContent() {
     })
   }
 
+  function handleTaskComplete() {
+    // Força uma nova consulta dos dados para garantir que a tabela seja atualizada
+    // Pequeno delay para dar tempo ao Firestore processar a mudança
+    setTimeout(() => {
+      setRefreshKey((prev) => prev + 1)
+      setIsLoading(true)
+    }, 500)
+  }
+
   useEffect(() => {
     async function setup() {
       if (!session.data?.user.id) {
@@ -113,17 +123,7 @@ export function ListContent() {
         const tastingsQuery = query(
           collection(firestore, Collections.TASTINGS),
           // where('promoter', '==', 'users/35998207796'),
-          and(
-            where(
-              'promoter',
-              '==',
-              doc(
-                collection(firestore, Collections.USERS),
-                session.data?.user.id,
-              ),
-            ),
-            ...constraints,
-          ),
+          and(where('promoterId', '==', session.data?.user.id), ...constraints),
         )
 
         unsubscribeRef.current = onSnapshot(
@@ -131,41 +131,9 @@ export function ListContent() {
           async (snapshot) => {
             try {
               const packagesData: Package[] = []
-              const companyCache = new Map<string, any>()
 
               for (const doc of snapshot.docs) {
                 const tastingData = doc.data()
-                // const tasks = await getDocs(
-                //   collection(packageSnapshot.ref, Collections.TASKS),
-                // )
-
-                let companyName = ''
-                if (tastingData?.company) {
-                  const companyId =
-                    typeof tastingData.company === 'string'
-                      ? tastingData.company.replace('/companies/', '')
-                      : tastingData.company.id
-
-                  let companyData = companyCache.get(companyId)
-                  if (!companyData) {
-                    try {
-                      const coll = collection(firestore, Collections.COMPANIES)
-
-                      const companyDoc = await getDoc(
-                        documentFirestore(coll, companyId),
-                      )
-
-                      if (companyDoc.exists()) {
-                        companyData = companyDoc.data()
-                        companyCache.set(companyId, companyData)
-                      }
-                    } catch (error) {
-                      console.error('Error fetching company:', error)
-                    }
-                  }
-                  companyName = companyData?.name || ''
-                }
-
                 const packageQuery = collection(
                   doc.ref,
                   Collections.TASK_PACKAGES,
@@ -194,7 +162,7 @@ export function ListContent() {
                       package: packageDoc.id, // packageId
                       tastingName:
                         tastingData?.name || `Degustação #${tastingData?.row}`,
-                      companyName,
+                      companyName: tastingData?.company.name,
                       tastingId: doc.id,
                     }
 
@@ -242,7 +210,7 @@ export function ListContent() {
         unsubscribeRef.current = null
       }
     }
-  }, [search, session.data?.user.id])
+  }, [search, session.data?.user.id, refreshKey])
 
   return (
     <MotionDiv
@@ -260,7 +228,7 @@ export function ListContent() {
                 packages.map((pack) => {
                   const isExpanded = expandedPackages.has(pack.id)
                   return (
-                    <>
+                    <Fragment key={pack.id}>
                       <ListPackageRow
                         key={pack.id}
                         pack={pack}
@@ -300,11 +268,15 @@ export function ListContent() {
                               data={task}
                               canStartTask={(task) => canStartTask(pack, task)}
                               isSubRow={true}
+                              packageId={pack.id}
+                              onCompleteTask={() => {
+                                handleTaskComplete()
+                              }}
                             />
                           ))}
                         </>
                       )}
-                    </>
+                    </Fragment>
                   )
                 })}
 

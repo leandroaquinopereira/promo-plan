@@ -34,9 +34,10 @@ export function useTastingLogs(tastingId: string) {
         const data = doc.data()
         logs.push({
           id: doc.id,
+          tastingId,
           tasting: data.tasting,
           status: data.status,
-          createdAt: convertFirebaseDate(data.createdAt),
+          createdAt: data.createdAt as number,
           createdBy: data.createdBy,
         })
       })

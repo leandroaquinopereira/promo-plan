@@ -29,7 +29,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { useServerAction } from 'zsa-react'
 
-import { TaskChecklistDialog } from '../../tastings/[tastingId]/tasks/components/task-checklist-dialog'
+import { TaskChecklistDialog } from './task-checklist'
 
 interface TaskWithTasting extends Task {
   tastingName?: string
@@ -41,12 +41,16 @@ type ListTableRowProps = {
   data: TaskWithTasting
   canStartTask?: (task: Task) => boolean
   isSubRow?: boolean
+  packageId?: string
+  onCompleteTask?: () => void
 }
 
 export function ListTableRow({
   data: task,
   canStartTask,
   isSubRow,
+  packageId,
+  onCompleteTask,
 }: ListTableRowProps) {
   const alertDialogProgress = useAlertDialogProgress()
   const { execute: completeTask } = useServerAction(completeTaskAction)
@@ -102,6 +106,15 @@ export function ListTableRow({
   }
 
   async function handleTakePhoto(photoUrlBase64: string) {
+    if (!packageId) {
+      toast.warning('Pacote de tarefas não selecionado', {
+        description:
+          'Você precisa selecionar um pacote para adicionar uma foto.',
+      })
+
+      return
+    }
+
     const storage = new FirebaseStorageClient()
 
     alertDialogProgress.showAlertDialogProgress({
@@ -136,6 +149,15 @@ export function ListTableRow({
           alertDialogProgress.stopError()
         },
         onComplete: async ({ downloadUrl }) => {
+          if (!packageId) {
+            toast.warning('Pacote de tarefas não selecionado', {
+              description:
+                'Você precisa selecionar um pacote para adicionar uma foto.',
+            })
+
+            return
+          }
+
           if (task.type === TaskType.SETUP) {
             const [result, resultError] = await completeTask({
               taskId: task.id.toString(),
@@ -150,6 +172,7 @@ export function ListTableRow({
                   path,
                 },
               },
+              packageId,
               payload: {
                 photoUrl: downloadUrl,
               },
@@ -176,47 +199,14 @@ export function ListTableRow({
           alertDialogProgress.stopSuccess()
 
           alertDialogProgress.hideAlertDialogProgress()
-          router.refresh()
+
+          onCompleteTask?.()
         },
       },
     })
   }
 
   async function handleDownloadPhoto() {
-    // try {
-    //   const _downloadUrl = task.payload?.photoUrl
-    //   if (!_downloadUrl) {
-    //     toast.error('Foto não encontrada')
-    //     return
-    //   }
-    //   const url = new URL(_downloadUrl)
-    //   const pathMatch = url.pathname.match(/\/o\/(.+)/)
-    //   if (!pathMatch) {
-    //     toast.error('URL da foto inválida')
-    //     return
-    //   }
-    //   const encodedPath = pathMatch[1]
-    //   const decodedPath = decodeURIComponent(encodedPath)
-    //   // Create a reference to the file in Firebase Storage
-    //   const fileRef = ref(storage, decodedPath)
-    //   // Download the file as a blob using Firebase SDK
-    //   const blob = await getBlob(fileRef)
-    //   const downloadUrl = URL.createObjectURL(blob)
-    //   const a = document.createElement('a')
-    //   a.href = downloadUrl
-    //   a.download = task.payload?.photo?.name
-    //   a.click()
-    //   URL.revokeObjectURL(downloadUrl)
-    // } catch (error) {
-    //   if (error instanceof FirebaseError) {
-    //     if (error.code === 'storage/object-not-found') {
-    //       toast.error('Foto não encontrada')
-    //       return
-    //     }
-    //   }
-    //   toast.error('Erro ao baixar foto')
-    // }
-
     const downloadUrl = task.payload?.photoUrl
     if (!downloadUrl) {
       toast.error('Foto não encontrada')
@@ -231,9 +221,19 @@ export function ListTableRow({
     photos: any[],
     observations: string,
   ) {
+    if (!packageId) {
+      toast.warning('Pacote de tarefas não selecionado', {
+        description:
+          'Você precisa selecionar um pacote para adicionar uma foto.',
+      })
+
+      return
+    }
+
     const [result, resultError] = await completeTask({
       taskId: task.id.toString(),
       taskTastingId: String(task.tasting),
+      packageId,
       metadata: {},
       payload: {
         materials,
@@ -257,7 +257,8 @@ export function ListTableRow({
     }
 
     toast.success('Tarefa concluída com sucesso!')
-    router.refresh()
+
+    onCompleteTask?.()
   }
 
   const status = getTaskStatus()

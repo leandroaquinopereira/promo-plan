@@ -5,7 +5,7 @@ import { Calendar } from '@promo/components/ui/calendar-rac'
 import { DateInput } from '@promo/components/ui/datefield-rac'
 import { cn } from '@promo/lib/utils'
 import { CalendarIcon } from 'lucide-react'
-import { forwardRef, useEffect, useState } from 'react'
+import { forwardRef } from 'react'
 import {
   Button,
   DatePicker as DatePickerRac,
@@ -38,29 +38,10 @@ export const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(
       disabled = false,
       className,
       error = false,
-      portalContainer,
       ...ariaProps
     },
     ref,
   ) {
-    // Auto-detect modal container if not provided
-    const [modalContainer, setModalContainer] = useState<Element | null>(null)
-
-    useEffect(() => {
-      if (!portalContainer) {
-        // Look for modal containers in the DOM
-        const dialogContent = document.querySelector(
-          '[data-radix-dialog-content]',
-        )
-        const drawerContent = document.querySelector('[data-vaul-drawer]')
-        const modalContent = dialogContent || drawerContent
-
-        if (modalContent) {
-          setModalContainer(modalContent)
-        }
-      }
-    }, [portalContainer])
-
     // Converte Date para CalendarDate (formato do react-aria-components)
     const getCalendarDateFromDate = (
       date: Date | null,
@@ -145,12 +126,10 @@ export const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(
             'data-[entering]:zoom-in-95 data-[exiting]:zoom-out-95',
             'data-[placement=bottom]:slide-in-from-top-2 data-[placement=left]:slide-in-from-right-2',
             'data-[placement=right]:slide-in-from-left-2 data-[placement=top]:slide-in-from-bottom-2',
+            'z-[9999999999]',
           )}
           offset={4}
           containerPadding={20}
-          UNSTABLE_portalContainer={
-            portalContainer || modalContainer || undefined
-          }
         >
           <Dialog className="max-h-[inherit] overflow-auto p-2">
             <Calendar />

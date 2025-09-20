@@ -9,7 +9,7 @@ import {
 } from '@promo/components/multi-select-with-quantity'
 import { Button } from '@promo/components/ui/button'
 import { Combobox } from '@promo/components/ui/combobox'
-import { DatePicker } from '@promo/components/ui/date-picker-rac'
+import { ShadcnUIDatePicker } from '@promo/components/ui/datepicker'
 import {
   Form,
   FormControl,
@@ -95,8 +95,6 @@ export function CreateTastingModal() {
     resolver: zodResolver(schema),
     defaultValues: {
       promoter: '',
-      startDate: new Date(),
-      endDate: new Date(),
       city: '',
       company: '',
       products: [],
@@ -283,18 +281,6 @@ export function CreateTastingModal() {
                     value={field.value}
                     onChange={(promoterId: string) => {
                       field.onChange(promoterId)
-                      // if (raw) {
-                      //   form.setValue('city', raw.city)
-                      //   form.clearErrors('city')
-                      // } else {
-                      //   form.resetField('city', {
-                      //     defaultValue: '',
-                      //   })
-
-                      //   form.setError('city', {
-                      //     message: 'Cidade é obrigatória',
-                      //   })
-                      // }
                     }}
                     placeholder="Selecione um promotor"
                     toasts={{
@@ -405,9 +391,9 @@ export function CreateTastingModal() {
                 <FormLabel>Data de início</FormLabel>
 
                 <FormControl>
-                  <DatePicker
-                    value={field.value}
-                    onChange={(date) => {
+                  <ShadcnUIDatePicker
+                    selected={field.value}
+                    onSelect={(date) => {
                       field.onChange(date)
                     }}
                   />
@@ -426,9 +412,9 @@ export function CreateTastingModal() {
                 <FormLabel>Data de término</FormLabel>
 
                 <FormControl>
-                  <DatePicker
-                    value={field.value}
-                    onChange={(date) => {
+                  <ShadcnUIDatePicker
+                    selected={field.value}
+                    onSelect={(date) => {
                       field.onChange(date)
                     }}
                   />

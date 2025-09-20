@@ -2,7 +2,7 @@
 
 import { useIsMobile } from '@promo/hooks/use-mobile'
 import { X } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { type ReactNode } from 'react'
 
 import { Button, type ButtonProps } from './button'
 import {

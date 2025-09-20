@@ -4,6 +4,7 @@ import { Collections } from '@promo/collections'
 import { TastingStatusEnum } from '@promo/enum/tasting-status'
 import { buildTasks } from '@promo/factory/build-tasks'
 import { dayjsApi } from '@promo/lib/dayjs'
+import { buildValueForCombobox } from '@promo/utils/build-value-for-combobox'
 import { extractValueFromCombobox } from '@promo/utils/extract-value-from-combobox'
 import { generateId } from '@promo/utils/generate-id'
 import { returnsDefaultActionMessage } from '@promo/utils/returns-default-action-message'
@@ -107,7 +108,7 @@ export const createTastingAction = authProcedure
         updatedAt: firestore.Timestamp.now().toMillis(),
         createdBy: ctx.session.user.id,
         row,
-        status: TastingStatusEnum.DRAFT,
+        status: TastingStatusEnum.ACTIVE,
         promoterId: promoterId,
         promoter: {
           id: promoterId,
@@ -121,7 +122,12 @@ export const createTastingAction = authProcedure
         },
         products: products.reduce((acc, product) => {
           const productQuantity = productsInput.find(
-            (p) => p.value === product.id,
+            (p) =>
+              p.value ===
+              buildValueForCombobox({
+                label: product.data()?.name || '',
+                value: product.id,
+              }),
           )?.quantity
 
           acc.push({

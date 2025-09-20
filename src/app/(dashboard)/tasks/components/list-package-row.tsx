@@ -46,7 +46,9 @@ export function ListPackageRow({
   onToggleExpansion,
 }: ListPackageRowProps) {
   const now = dayjsApi().format('YYYYMMDD')
-  const friendlyId = pack.id.split('_').at(-1)
+  const friendlyId = pack.id.split('_').at(-1) ?? '99999999'
+
+  const isEnableExpand = now <= friendlyId
 
   function getTaskStatus() {
     const completedTasks = pack.tasks.filter((task) => task.completedAt)
@@ -64,12 +66,12 @@ export function ListPackageRow({
   }
 
   return (
-    <TableRow className={cn(now !== friendlyId && 'opacity-50')}>
+    <TableRow className={cn(isEnableExpand && 'opacity-50')}>
       <TableCell>
         <Button
           variant="outline"
           size="icon"
-          disabled={now !== friendlyId}
+          disabled={isEnableExpand}
           className="size-6 transition-all duration-200"
           onClick={onToggleExpansion}
         >

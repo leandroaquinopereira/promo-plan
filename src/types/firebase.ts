@@ -102,7 +102,7 @@ export type ProductTasting = {
 }
 
 export interface Tasting {
-  id: number
+  id: string
   promoterId: string
   promoter: {
     id: string

@@ -11,7 +11,9 @@ import {
   TableCell,
   TableRow,
 } from '@promo/components/ui/table'
+import { appConfiguration } from '@promo/constants/app-configuration'
 import { TastingStatusEnum } from '@promo/enum/tasting-status'
+import { dayjsApi } from '@promo/lib/dayjs'
 import { firestore } from '@promo/lib/firebase/client'
 import type { PaginatedResponse } from '@promo/types/common'
 import type { Company, Product, Tasting, User } from '@promo/types/firebase'
@@ -31,11 +33,15 @@ import {
 } from 'firebase/firestore'
 import { Plus, Utensils, Wine } from 'lucide-react'
 import Link from 'next/link'
-import { parseAsInteger, parseAsString, useQueryState } from 'nuqs'
+import {
+  parseAsBoolean,
+  parseAsInteger,
+  parseAsString,
+  useQueryState,
+} from 'nuqs'
 import { useEffect, useRef, useState } from 'react'
 
 import { CreateTastingModal } from './create-modal'
-import { CreationForm } from './creation-form'
 import { ListPaginationSection } from './list-pagination-section'
 import { ListTableHeader } from './list-table-header'
 import { ListTableRow } from './list-table-row'
@@ -48,13 +54,15 @@ export function ListContent() {
     total: 0,
   })
 
-  // Query states for filters
-  const [search] = useQueryState('search', parseAsString.withDefault(''))
   const [processId] = useQueryState('processId', parseAsString.withDefault(''))
   const [company] = useQueryState('company', parseAsString.withDefault(''))
   const [state] = useQueryState('state', parseAsString.withDefault('all'))
   const [city] = useQueryState('city', parseAsString.withDefault(''))
   const [status] = useQueryState('status', parseAsString.withDefault('all'))
+  const [onlyInProcess] = useQueryState(
+    'only-in-process',
+    parseAsBoolean.withDefault(false),
+  )
 
   const [startDate] = useQueryState('startDate', parseAsString.withDefault(''))
   const [endDate] = useQueryState('endDate', parseAsString.withDefault(''))
@@ -85,18 +93,25 @@ export function ListContent() {
         constraints.push(where('row', '==', parseInt(processId)))
       }
 
-      if (startDate && endDate) {
+      if (onlyInProcess) {
+        try {
+          const now = new Date().getTime()
+
+          constraints.push(and(where('startDate', '<=', now)))
+        } finally {
+        }
+      }
+
+      if (startDate && endDate && !onlyInProcess) {
         try {
           const startDateParsed = startDate ? new Date(startDate) : null
           const endDateParsed = endDate ? new Date(endDate) : null
 
           if (startDateParsed && endDateParsed) {
             constraints.push(
-              where('startDate', '>=', Timestamp.fromDate(startDateParsed)),
+              where('startDate', '>=', startDateParsed.getTime()),
             )
-            constraints.push(
-              where('endDate', '<=', Timestamp.fromDate(endDateParsed)),
-            )
+            constraints.push(where('endDate', '<=', endDateParsed.getTime()))
           }
         } finally {
         }
@@ -114,7 +129,15 @@ export function ListContent() {
 
       const q = query(
         coll,
-        and(where('status', '!=', TastingStatusEnum.DELETED), ...constraints),
+        and(
+          where('status', '!=', TastingStatusEnum.DELETED),
+          // where(
+          //   'row',
+          //   '>=',
+          //   (currentPage - 1) * appConfiguration.listItemsPerPage,
+          // ),
+          ...constraints,
+        ),
       )
 
       const countQuery = query(
@@ -131,37 +154,41 @@ export function ListContent() {
             const tastings: Tasting[] = []
 
             const promoterColl = collection(firestore, Collections.USERS)
-            const companyColl = collection(firestore, Collections.COMPANIES)
-            const productColl = collection(firestore, Collections.PRODUCTS)
-
             const promoterCaching = new Map<string, User>()
-            const companyCaching = new Map<string, Company>()
-            const productCaching = new Map<string, Product>()
 
-            for await (const snap of snapshot.docs) {
+            const now = new Date().getTime()
+            let tastingsFiltered = snapshot.docs
+            if (onlyInProcess) {
+              tastingsFiltered = snapshot.docs.filter((doc) => {
+                const tasting = doc.data() as Tasting
+                return dayjsApi(now).isBefore(
+                  dayjsApi(tasting.endDate).endOf('day'),
+                )
+              })
+            }
+
+            for await (const snap of tastingsFiltered) {
               const tasting: Tasting = {
                 id: snap.id,
                 ...snap.data(),
               } as unknown as Tasting
 
               // getting role reference and fetching role data
-              const promoterRefStr = tasting.promoter
-              const promoterId =
-                typeof promoterRefStr === 'string'
-                  ? String(promoterRefStr).replace('/users/', '')
-                  : promoterRefStr.id
-
-              let promoter: User | undefined = promoterCaching.get(promoterId)
+              let promoter: User | undefined = promoterCaching.get(
+                tasting.promoter.id,
+              )
               if (!promoter) {
                 // if not cached, fetch from Firestore
-                const promoterDoc = await getDoc(doc(promoterColl, promoterId))
+                const promoterDoc = await getDoc(
+                  doc(promoterColl, tasting.promoter.id),
+                )
                 if (promoterDoc.exists()) {
                   promoter = {
                     id: promoterDoc.id,
                     ...promoterDoc.data(),
                   } as User
 
-                  promoterCaching.set(promoterId, promoter)
+                  promoterCaching.set(tasting.promoter.id, promoter)
                 }
               }
 
@@ -188,58 +215,6 @@ export function ListContent() {
               }
 
               tasting.promoter = promoter as any
-
-              const companyRefStr = tasting.company
-              const companyId =
-                typeof companyRefStr === 'string'
-                  ? String(companyRefStr).replace('/companies/', '')
-                  : companyRefStr.id
-
-              let company: Company | undefined = companyCaching.get(companyId)
-              if (!company) {
-                // if not cached, fetch from Firestore
-                const companyDoc = await getDoc(doc(companyColl, companyId))
-                if (companyDoc.exists()) {
-                  company = {
-                    id: companyDoc.id,
-                    ...companyDoc.data(),
-                  } as Company
-
-                  companyCaching.set(companyId, company)
-                }
-              }
-
-              tasting.company = company as any
-
-              const productsRefStrs = tasting.products
-              const products: Product[] = []
-              for (const productRefStr of productsRefStrs) {
-                const productId =
-                  typeof productRefStr === 'string'
-                    ? String(productRefStr).replace('/products/', '')
-                    : productRefStr.id
-
-                let product: Product | undefined = productCaching.get(productId)
-                if (!product) {
-                  const productDoc = await getDoc(doc(productColl, productId))
-                  if (productDoc.exists()) {
-                    product = {
-                      id: productDoc.id,
-                      ...productDoc.data(),
-                    } as Product
-
-                    productCaching.set(productId, product)
-                    products.push(product)
-                  }
-                }
-              }
-
-              tasting.products = products as any
-              tasting.createdAt = convertFirebaseDate(tasting.createdAt)
-              tasting.startDate = convertFirebaseDate(tasting.startDate)
-              tasting.endDate = convertFirebaseDate(tasting.endDate)
-              tasting.updatedAt = convertFirebaseDate(tasting.updatedAt)
-
               tastings.push(tasting)
             }
 
@@ -278,7 +253,17 @@ export function ListContent() {
         unsubscribeRef.current = null
       }
     }
-  }, [processId, company, status, startDate, endDate, state, city])
+  }, [
+    processId,
+    company,
+    status,
+    startDate,
+    endDate,
+    state,
+    city,
+    currentPage,
+    onlyInProcess,
+  ])
 
   function handleSelectedRow(checked: boolean, tastingId: string) {
     setSelectedRows((prevSelected) => {
@@ -302,6 +287,9 @@ export function ListContent() {
     }
   }
 
+  const currentPageCursor =
+    (currentPage - 1) * appConfiguration.listItemsPerPage
+
   return (
     <MotionDiv
       initial={{ opacity: 0, y: 20 }}
@@ -323,14 +311,19 @@ export function ListContent() {
             />
             <TableBody>
               {!isLoading &&
-                response.data.map((tasting) => (
-                  <ListTableRow
-                    key={tasting.id}
-                    data={tasting}
-                    isSelected={selectedRows.has(tasting.id.toString())}
-                    onSelectedRow={handleSelectedRow}
-                  />
-                ))}
+                response.data
+                  .slice(
+                    currentPageCursor,
+                    currentPageCursor + appConfiguration.listItemsPerPage,
+                  )
+                  .map((tasting) => (
+                    <ListTableRow
+                      key={tasting.id}
+                      data={tasting}
+                      isSelected={selectedRows.has(tasting.id.toString())}
+                      onSelectedRow={handleSelectedRow}
+                    />
+                  ))}
 
               {!isLoading && response.data.length === 0 && (
                 <TableRow>
