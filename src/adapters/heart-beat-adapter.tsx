@@ -14,7 +14,6 @@ export function HeartBeatAdapter({ children }: HeartBeatAdapterProps) {
   const { execute, isPending } = useServerAction(updateUserPresenceAction)
   const session = useSession()
 
-  const intervalIdRef = useRef<NodeJS.Timeout | null>(null)
   const offlineTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const isUserActiveRef = useRef<boolean>(true)
   const updatePresenceRef = useRef<
@@ -43,12 +42,6 @@ export function HeartBeatAdapter({ children }: HeartBeatAdapterProps) {
   updatePresenceRef.current = updatePresence
 
   useEffect(() => {
-    // Limpa intervals anteriores
-    if (intervalIdRef.current) {
-      clearInterval(intervalIdRef.current)
-      intervalIdRef.current = null
-    }
-
     if (offlineTimeoutRef.current) {
       clearTimeout(offlineTimeoutRef.current)
       offlineTimeoutRef.current = null
@@ -117,13 +110,6 @@ export function HeartBeatAdapter({ children }: HeartBeatAdapterProps) {
     isUserActiveRef.current = true
     updatePresenceRef.current?.(userId, UserStatusEnum.ONLINE)
 
-    intervalIdRef.current = setInterval(() => {
-      // Só envia online se o usuário estiver ativo E a página estiver visível
-      if (isUserActiveRef.current && !document.hidden) {
-        updatePresenceRef.current?.(userId, UserStatusEnum.ONLINE)
-      }
-    }, 10_000)
-
     document.addEventListener('visibilitychange', handleVisibilityChange)
     window.addEventListener('focus', handleFocus)
     window.addEventListener('blur', handleBlur)
@@ -131,11 +117,6 @@ export function HeartBeatAdapter({ children }: HeartBeatAdapterProps) {
     window.addEventListener('pagehide', handlePageHide)
 
     return () => {
-      if (intervalIdRef.current) {
-        clearInterval(intervalIdRef.current)
-        intervalIdRef.current = null
-      }
-
       clearOfflineTimeout()
 
       document.removeEventListener('visibilitychange', handleVisibilityChange)
