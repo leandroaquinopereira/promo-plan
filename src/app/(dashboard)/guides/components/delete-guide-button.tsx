@@ -4,8 +4,10 @@ import { useRouter } from '@bprogress/next'
 import { deleteGuideByIdAction } from '@promo/actions/delete-guide'
 import { Button } from '@promo/components/ui/button'
 import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
+import { AuthContext } from '@promo/context/auth'
 import { Loader, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useContextSelector } from 'use-context-selector'
 import { useServerAction } from 'zsa-react'
 
 type DeleteGuideButtonProps = {
@@ -16,6 +18,12 @@ export function DeleteGuideButton({ guideId }: DeleteGuideButtonProps) {
   const { execute, isPending: isDeletingGuide } = useServerAction(
     deleteGuideByIdAction,
   )
+
+  const { isAdmin } = useContextSelector(AuthContext, (context) => {
+    return {
+      isAdmin: context.isAdmin,
+    }
+  })
 
   const router = useRouter()
 
@@ -59,6 +67,10 @@ export function DeleteGuideButton({ guideId }: DeleteGuideButtonProps) {
     })
 
     router.refresh()
+  }
+
+  if (!isAdmin) {
+    return null
   }
 
   return (

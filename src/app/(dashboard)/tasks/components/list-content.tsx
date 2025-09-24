@@ -52,7 +52,6 @@ interface Package {
 
 export function ListContent() {
   const [isLoading, setIsLoading] = useState(true)
-  const [tasks, setTasks] = useState<TaskWithTasting[]>([])
   const [packages, setPackages] = useState<Package[]>([])
   const [expandedPackages, setExpandedPackages] = useState<Set<string>>(
     new Set(),
@@ -301,8 +300,8 @@ export function ListContent() {
         </CardContent>
 
         <ListPaginationSection
-          totalTasks={tasks.length}
-          totalTasksShowing={tasks.length}
+          totalTasks={packages.length}
+          totalTasksShowing={packages.length}
         />
       </Card>
     </MotionDiv>

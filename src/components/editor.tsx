@@ -5,6 +5,7 @@ import 'highlight.js/styles/github.css'
 import { saveGuideContentAction } from '@promo/actions/save-guide-content'
 import { defaultTiptapContent } from '@promo/constants/default-tiptap-content'
 import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
+import { AuthContext } from '@promo/context/auth'
 import { cn } from '@promo/lib/utils'
 import type { Guide } from '@promo/types/firebase'
 import {
@@ -46,6 +47,7 @@ import {
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { useContextSelector } from 'use-context-selector'
 import { useServerAction } from 'zsa-react'
 
 import { EditableTitle } from './editable-title'
@@ -75,7 +77,14 @@ export function Editor({ guide }: EditorProps) {
   const { execute, isPending } = useServerAction(saveGuideContentAction)
   const [guideTitle, setGuideTitle] = useState(guide.title)
 
+  const { isAdmin } = useContextSelector(AuthContext, (context) => {
+    return {
+      isAdmin: context.isAdmin,
+    }
+  })
+
   const editor = useEditor({
+    editable: isAdmin,
     extensions: [
       StarterKit,
       CodeBlock.configure({
@@ -202,10 +211,10 @@ export function Editor({ guide }: EditorProps) {
         <EditableTitle
           initialTitle={guideTitle}
           onSave={setGuideTitle}
-          disabled
+          disabled={!isAdmin}
         />
       </div>
-      <EditorContent className="w-full" editor={editor} />
+      <EditorContent className="w-full" editor={editor} disabled={!isAdmin} />
       {editor && (
         <FloatingMenu
           editor={editor}
@@ -469,13 +478,15 @@ export function Editor({ guide }: EditorProps) {
           <ArrowLeft className="size-4" />
           Voltar
         </Link>
-        <Button
-          isLoading={isPending}
-          className="w-fit"
-          onClick={handleSaveGuide}
-        >
-          Salvar guia
-        </Button>
+        {isAdmin && (
+          <Button
+            isLoading={isPending}
+            className="w-fit"
+            onClick={handleSaveGuide}
+          >
+            Salvar guia
+          </Button>
+        )}
       </div>
     </div>
   )

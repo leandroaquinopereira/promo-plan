@@ -46,6 +46,7 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
     name?: string | null
     phoneNumber?: string | null
     image?: string | null
+    isAdmin?: boolean
   }
 }
 
@@ -118,65 +119,70 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              <SidebarMenuItem key="tastings">
-                <SidebarMenuButton
-                  asChild
-                  isActive={
-                    (pathname === '/tastings' ||
-                      pathname.startsWith('/tastings')) &&
-                    pathname !== '/'
-                  }
-                >
-                  <Link href="/tastings">
-                    <Utensils />
-                    <span>Degustações</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem key="companies">
-                <SidebarMenuButton
-                  asChild
-                  isActive={
-                    (pathname === '/companies' ||
-                      pathname.startsWith('/companies')) &&
-                    pathname !== '/'
-                  }
-                >
-                  <Link href="/companies">
-                    <Building />
-                    <span>Empresas</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem key="products">
-                <SidebarMenuButton
-                  asChild
-                  isActive={
-                    (pathname === '/products' ||
-                      pathname.startsWith('/products')) &&
-                    pathname !== '/'
-                  }
-                >
-                  <Link href="/products">
-                    <Package />
-                    <span>Produtos</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem key="users">
-                <SidebarMenuButton
-                  asChild
-                  isActive={
-                    (pathname === '/users' || pathname.startsWith('/users')) &&
-                    pathname !== '/'
-                  }
-                >
-                  <Link href="/users">
-                    <Users />
-                    <span>Usuários</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {user?.isAdmin && (
+                <>
+                  <SidebarMenuItem key="tastings">
+                    <SidebarMenuButton
+                      asChild
+                      isActive={
+                        (pathname === '/tastings' ||
+                          pathname.startsWith('/tastings')) &&
+                        pathname !== '/'
+                      }
+                    >
+                      <Link href="/tastings">
+                        <Utensils />
+                        <span>Degustações</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem key="companies">
+                    <SidebarMenuButton
+                      asChild
+                      isActive={
+                        (pathname === '/companies' ||
+                          pathname.startsWith('/companies')) &&
+                        pathname !== '/'
+                      }
+                    >
+                      <Link href="/companies">
+                        <Building />
+                        <span>Empresas</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem key="products">
+                    <SidebarMenuButton
+                      asChild
+                      isActive={
+                        (pathname === '/products' ||
+                          pathname.startsWith('/products')) &&
+                        pathname !== '/'
+                      }
+                    >
+                      <Link href="/products">
+                        <Package />
+                        <span>Produtos</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem key="users">
+                    <SidebarMenuButton
+                      asChild
+                      isActive={
+                        (pathname === '/users' ||
+                          pathname.startsWith('/users')) &&
+                        pathname !== '/'
+                      }
+                    >
+                      <Link href="/users">
+                        <Users />
+                        <span>Usuários</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

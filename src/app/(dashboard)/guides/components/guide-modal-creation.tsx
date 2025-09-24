@@ -25,9 +25,11 @@ import {
 import { Input } from '@promo/components/ui/input'
 import { Textarea } from '@promo/components/ui/textarea'
 import { FirebaseErrorCode } from '@promo/constants/firebase-error-code'
+import { AuthContext } from '@promo/context/auth'
 import { BookPlus } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { useContextSelector } from 'use-context-selector'
 import { z } from 'zod'
 import { useServerAction } from 'zsa-react'
 
@@ -42,6 +44,12 @@ export function GuideModalCreation() {
   const { execute } = useServerAction(createNewGuide)
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
+  })
+
+  const { isAdmin } = useContextSelector(AuthContext, (context) => {
+    return {
+      isAdmin: context.isAdmin,
+    }
   })
 
   const router = useRouter()
@@ -86,6 +94,10 @@ export function GuideModalCreation() {
         },
       )
     }
+  }
+
+  if (!isAdmin) {
+    return null
   }
 
   return (

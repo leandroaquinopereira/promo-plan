@@ -2,7 +2,7 @@ import { Collections } from '@promo/collections'
 import { getFirebaseApps } from '@promo/lib/firebase/server'
 import { auth } from '@promo/lib/next-auth/auth'
 import { firestore } from 'firebase-admin'
-import { permanentRedirect } from 'next/navigation'
+import { permanentRedirect, redirect } from 'next/navigation'
 import { after } from 'next/server'
 
 type AuthAdapterProps = {
