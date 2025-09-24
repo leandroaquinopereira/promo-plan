@@ -7,9 +7,6 @@ export class Permission {
   static readonly permissions = [this.ADMIN, this.USER]
 
   static can(user: User, url: string) {
-    console.log('user', user)
-    console.log('url', url)
-
     if (url.includes('forbidden') || url.includes('sign-in')) {
       return true
     }
@@ -26,9 +23,6 @@ export class Permission {
   private static freelancer(url: string) {
     const paths = ['/', '/tasks', '/guides', '/settings', '/profile']
 
-    console.log('url', url)
-    console.log('paths', paths)
-    console.log('new URL(url).pathname', new URL(url).pathname)
     return paths.some((path) => new URL(url).pathname.startsWith(path))
   }
 }
