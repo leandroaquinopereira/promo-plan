@@ -7,6 +7,14 @@ import { Permission } from './permission'
 import type { User } from './types/firebase'
 
 export default async function middleware(request: NextRequest) {
+  // Skip authentication for auth routes and forbidden page to prevent redirect loops
+  if (
+    request.nextUrl.pathname.startsWith('/auth/') ||
+    request.nextUrl.pathname === '/forbidden'
+  ) {
+    return NextResponse.next()
+  }
+
   const session = await auth()
   if (!session) {
     return NextResponse.redirect(new URL('/auth/sign-in', request.url))
