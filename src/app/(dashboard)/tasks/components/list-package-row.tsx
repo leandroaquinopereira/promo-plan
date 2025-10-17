@@ -48,7 +48,7 @@ export function ListPackageRow({
   const now = dayjsApi().format('YYYYMMDD')
   const friendlyId = pack.id.split('_').at(-1) ?? '99999999'
 
-  const isEnableExpand = now <= friendlyId
+  const isEnableExpand = now < friendlyId
 
   function getTaskStatus() {
     const completedTasks = pack.tasks.filter((task) => task.completedAt)

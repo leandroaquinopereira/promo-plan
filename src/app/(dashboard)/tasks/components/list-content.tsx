@@ -68,7 +68,7 @@ export function ListContent() {
     const beforeTaskIndex = pack.tasks.findIndex((t) => t.id === task.id)
     const now = dayjsApi().format('YYYYMMDD')
     const dayOfPackage = pack.id.split('_').at(-1) ?? '99999999'
-    if (now <= dayOfPackage) {
+    if (now < dayOfPackage) {
       return false
     }
 
@@ -123,6 +123,7 @@ export function ListContent() {
           collection(firestore, Collections.TASTINGS),
           // where('promoter', '==', 'users/35998207796'),
           and(where('promoterId', '==', session.data?.user.id), ...constraints),
+          // and(where('promoterId', '==', '35999157614'), ...constraints),
         )
 
         unsubscribeRef.current = onSnapshot(
